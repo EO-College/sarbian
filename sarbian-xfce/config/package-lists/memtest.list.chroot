@@ -1,0 +1,4 @@
+
+#if ARCHITECTURES amd64 hurd-i386 i386 kfreebsd-amd64 kfreebsd-i386
+memtest86+
+#endif

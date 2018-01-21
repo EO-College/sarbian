@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Hook to install R packages
+
+set -e
+
+MIRROR="https://cran.rstudio.com"
+
+for pkg in abind jpeg mapproj raster rgdal rgeos shiny sp; do
+    R -e "install.packages('$pkg', dependencies=TRUE, repos='$MIRROR')"
+done

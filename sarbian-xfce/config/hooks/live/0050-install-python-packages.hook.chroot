@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Hook to install Python packages
+
+set -e
+
+# python2 packages
+for pkg in numpy scipy matplotlib git+https://github.com/johntruckenbrodt/pyroSAR.git; do
+    pip2 install "$pkg"
+done
+
+# python3 packages
+for pkg in numpy scipy; do
+    pip3 install "$pkg"
+done
+
+#requirements for pyrat + pyrat
+for pkg in cython h5py lxml mako matplotlib numexpr pillow readline scikit-image git+https://github.com/birgander2/pyrat; do
+    pip3 install "$pkg"
+done

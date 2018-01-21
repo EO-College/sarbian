@@ -1,0 +1,6 @@
+#!/bin/sh
+
+##
+# configure password of the live user
+LIVE_USER_NAME=`getent passwd 1000 | cut -d: -f1`
+usermod -p '$6$x4hDBX3cG$6Pr3J4aaghCp9W2OaHPFNLJj/bAaAI1rSBu70Pa9OFhu.uutTh8DzWdNQvI5OYC6UXJTfdHZfyaoDPwkW6u2V.' "$LIVE_USER_NAME"

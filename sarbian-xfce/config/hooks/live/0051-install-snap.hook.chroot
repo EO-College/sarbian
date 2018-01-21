@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# Hook to install SNAP, its icon and desktop files
+
+set -e
+
+architecture="$(dpkg --print-architecture)"
+
+if [ "$architecture" = "amd64" ]; then
+    ##
+    # install SNAP
+    echo ">>> Running SNAP installer..."
+    /usr/local/bin/esa-snap_sentinel_unix_5_0.sh -q -dir /opt/snap
+    ##
+    # update SNAP
+    echo ">>> Launching SNAP and update modules..."
+    /opt/snap/bin/snap --nosplash --nogui --modules --update-all
+    ##
+    # create symlinks for the executables
+    echo ">>> Linking executables into '/usr/local/bin'..."
+    ln -vsf /opt/snap/bin/snap /usr/local/bin/snap
+    ln -vsf /opt/snap/bin/gpt /usr/local/bin/gpt
+    ##
+    # overwrite broken icon with non-corrupt one
+    echo ">>> Fixing SNAP icon..."
+    mv -v /usr/local/share/SNAP_Icon_48.png /opt/snap/bin/SNAP_Icon_48.png
+
+    ##
+    # setup SNAP desktop file
+    SNAP_DESKTOP1="SNAP Desktop"
+    if [ -e "/usr/share/applications/$SNAP_DESKTOP1-0.desktop" ]; then
+        SNAP_DESKTOP1_FILE="/usr/share/applications/$SNAP_DESKTOP1-0.desktop"
+    else
+        echo ">>> Copying SNAP desktop files..."
+        mkdir -p "/usr/local/share/applications"
+        cp -v "/opt/snap/$SNAP_DESKTOP1.desktop" "/usr/local/share/applications/"
+        SNAP_DESKTOP1_FILE="/usr/local/share/applications/$SNAP_DESKTOP1-0.desktop"
+    fi
+
+    ##
+    # setup SNAP configuration optimiser desktop file
+    SNAP_DESKTOP2="SNAP Configuration Optimiser"
+    if [ -e "/usr/share/applications/$SNAP_DESKTOP2-0.desktop" ]; then
+        SNAP_DESKTOP2_FILE="/usr/share/applications/$SNAP_DESKTOP2-0.desktop"
+    else
+        echo ">>> Copying SNAP desktop files..."
+        mkdir -p "/usr/local/share/applications"
+        cp -v "/opt/snap/$SNAP_DESKTOP2.desktop" "/usr/local/share/applications/"
+        SNAP_DESKTOP2_FILE="/usr/local/share/applications/$SNAP_DESKTOP2-0.desktop"
+    fi
+
+    ##
+    # patch the desktop files
+    echo ">>> Patching category of SNAP desktop files..."
+    sed -i 's/Categories=Application;/Categories=Application;Geography;/' "$SNAP_DESKTOP1_FILE"
+    sed -i 's/Categories=Application;/Categories=Application;Geography;/' "$SNAP_DESKTOP2_FILE"
+
+    echo ">>> Patching icon of SNAP desktop files..."
+    if grep 'Icon=' "$SNAP_DESKTOP1_FILE" > /dev/null; then
+        sed -i 's%Icon=.*%Icon=/opt/snap/bin/SNAP_Icon_48.png%' "$SNAP_DESKTOP1_FILE"
+    else
+        echo "Icon=/opt/snap/bin/SNAP_Icon_48.png" >> "$SNAP_DESKTOP1_FILE"
+    fi
+fi
+
+##
+# remove installer file
+rm -vrf /usr/local/bin/esa-snap_sentinel_unix_5_0.sh

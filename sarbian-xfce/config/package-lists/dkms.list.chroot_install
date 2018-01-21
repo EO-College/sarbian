@@ -1,0 +1,22 @@
+
+#if PARENT_ARCHIVE_AREAS non-free
+	# live-config xserver-xorg script
+	pciutils
+
+	## broadcom-sta
+	#broadcom-sta-dkms
+
+	## fglrx-driver
+	#fglrx-modules-dkms
+	#fglrx-driver
+	#fglrx-control
+
+	## nvidia-graphics-drivers
+	#nvidia-kernel-dkms
+	#nvidia-glx
+	#xserver-xorg-video-nvidia
+	#nvidia-settings
+	#nvidia-xconfig
+	#nvidia-vdpau-driver
+	#vdpau-va-driver
+#endif

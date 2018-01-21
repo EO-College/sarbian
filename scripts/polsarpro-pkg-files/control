@@ -1,0 +1,10 @@
+Package: PKG_NAME
+Version: PKG_VER
+Architecture: ARCH
+Essential: no
+Section: science
+Priority: optional
+Depends: tcl, tk, bwidget, gnuplot, itcl3, itk3, iwidgets4, libtk-img, gimp, imagemagick, asf-mapready
+Maintainer: SAREdu Team
+Installed-Size: INSTALLED_SIZE
+Description: Tools for processing polarimetric satellite data.

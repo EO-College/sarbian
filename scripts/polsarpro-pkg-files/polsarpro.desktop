@@ -1,0 +1,7 @@
+
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Name=PolSARPro
+Exec=/usr/bin/polsarpro
+Categories=Application;Geography;

@@ -1,0 +1,11 @@
+# open-vm-tools
+open-vm-tools
+open-vm-tools-desktop
+open-vm-tools-dkms
+
+
+## virtualbox
+virtualbox-guest-dkms
+virtualbox-guest-utils
+virtualbox-guest-x11
+

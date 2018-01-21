@@ -1,0 +1,3 @@
+Package: qgis qgis-* python-qgis python-qgis-* libqgis-*
+Pin: release a=stretch-backports
+Pin-Priority: 1000

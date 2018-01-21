@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /opt/polsarpro
+./PolSARpro_v5.0.tcl "$@"

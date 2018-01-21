@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=exo-open --launch FileManager %u
+Icon=/usr/local/share/sarbian/images/saredu_logo_simplified-blue.png
+StartupNotify=true
+Terminal=false
+Categories=Utility;X-XFCE;X-Xfce-Toplevel;
+OnlyShowIn=XFCE;
+X-XFCE-MimeType=inode/directory;x-scheme-handler/trash;
+Name=SAR-EDU Resources
+Comment=Browse the SAR-EDU learning resources
+X-XFCE-Source=file:///usr/local/share/applications/saredu_tutorials.desktop
+Path=/usr/local/share/sarbian/tutorials

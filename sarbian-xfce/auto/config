@@ -1,0 +1,34 @@
+#!/bin/sh
+
+set -e
+
+case "$(dpkg --print-architecture)" in
+    amd64)
+        _SOURCE="false"
+        _FLAVOURS="amd64"
+        ;;
+
+    i386)
+        _SOURCE="false"
+        _FLAVOURS="686 686-pae"
+        ;;
+esac
+
+lb config noauto \
+    --clean \
+    --ignore-system-defaults \
+    --mode debian \
+    --debian-installer live \
+    --linux-packages "linux-image linux-headers" \
+    --source "${_SOURCE}" \
+    --archive-areas "main contrib non-free" \
+    --backports true \
+    --security true \
+    --updates true \
+    --iso-application "SARbian is a remote sensing ready operating system" \
+    --iso-publisher "SARedu team at www.eo-college.org" \
+    --iso-volume "SARbian" \
+    --linux-flavours "${_FLAVOURS}" \
+    --checksums "sha512" \
+    --bootappend-live "boot=live components username=saredu" \
+"${@}"
