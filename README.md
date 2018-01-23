@@ -1,4 +1,4 @@
-# README
+# SARbian
 SARbian is a Debian-based live system coming with free SAR processing software tools pre-installed, ready to use. For now, there is only a version for 64 bit systems.
 
 Simply burn the image on a DVD or install it on a USB key. When booting from the DVD/USB key, choose:
