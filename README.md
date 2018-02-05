@@ -1,9 +1,9 @@
 # SARbian
-SARbian is a Debian-based live system coming with free SAR processing software tools pre-installed, ready to use.
+SARbian is a Linux live system based on Debian Stretch (Debian 9) coming with free SAR processing software tools pre-installed, ready to use.
 For now, there is only a version for 64 bit systems.
 
 This repository contains the scripts to build the SARbian iso file.
-Go to https://eo-college.org/sarbian#download to download a prebuilt SARbian iso. 
+Go to https://eo-college.org/sarbian#download to download a prebuilt SARbian iso.
 
 Simply burn the image on a DVD or install it on a USB key. When booting from the DVD/USB key, choose:
 
@@ -12,7 +12,7 @@ Simply burn the image on a DVD or install it on a USB key. When booting from the
 
 The live system will automatically start a graphical session. In case it is necessary, the login data is "saredu" with password "sarbian".
 
-As with most live systems:
+**As with most live systems:**  
 Keep in mind, that when using SARbian in live mode, changes and files that are not saved elsewhere (Cloud Storage, another USB key, etc.) are lost when you power off your computer.
 
 ## SAR Processing Software
