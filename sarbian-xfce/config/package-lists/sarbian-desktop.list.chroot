@@ -82,3 +82,6 @@ gvfs-fuse
 
 # for xdg goodies
 education-menus
+
+# automatic security updates
+unattended-upgrades
