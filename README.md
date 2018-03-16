@@ -55,3 +55,7 @@ We would like to thank the [Debian Project](https://debian.org) and the [Debian 
 SARbian is provided by the [EO College](https://eo-college.org) and was developed in the framework of the project SAR-EDU.
 
 SAR-EDU is funded by the Federal Ministry of Economics and Technology, on the basis of a decision by the German Bundestag.
+
+## Disclaimer
+
+SARbian is not affiliated with Debian. Debian is a registered trademark owned by Software in the Public Interest, Inc.
