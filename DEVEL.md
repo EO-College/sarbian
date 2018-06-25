@@ -41,7 +41,7 @@ to as **build tree** in the following.
 
 Only some important files and directories are covered here; to fully
 understand the purpose of each file and directory, please read the
-[manual](https://debian-live.alioth.debian.org/live-manual/stable/manual/html/live-manual.en.html#1)
+[manual](https://live-team.pages.debian.net/live-manual/html/live-manual/about-manual.en.html)
 of `live-build`.
 
 ### `auto/config`
