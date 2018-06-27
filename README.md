@@ -46,7 +46,7 @@ The following software is installed for the processing and handling of SAR data.
 ## Help to build SARbian
 
 If you want to help building SARbian you should have a look at the [developer manual](DEVEL.md)
-and the [Live Systems Manual](https://debian-live.alioth.debian.org/live-manual/stable/manual/html/live-manual.en.html#1).
+and the [Live Systems Manual](https://live-team.pages.debian.net/live-manual/html/live-manual/about-manual.en.html).
 
 ## Acknowledgement
 
