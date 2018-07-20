@@ -26,14 +26,14 @@ function checkFile {
 # define snap version here
 # make necessary adjustments when using a newer versions
 declare -r appname="esa-snap"
-declare -r appver="5.0"
+declare -r appver="6.0"
 declare -r file="${appname}_sentinel_unix_${appver/./_}.sh"
 declare -r url="http://step.esa.int/downloads/${appver}/installers/${file}"
-declare -r sha256sum="cbee10587265833ec1c66aa20317b48a1ee41e1146cc197ef3cab232e4eec6a7"
+declare -r sha256sum="3e92651f68bd4ea2fd523bd1b31ed8c31347eba73dd4d25fa4791ea2f748ef18"
 
 # SNAP installer currently corrupts the icon for SNAP, so we manually replace it
 declare -r icon_file="SNAP_Icon_48.png"
-declare -r icon_url="https://raw.githubusercontent.com/senbox-org/snap-installer/${appver}/images/${icon_file}"
+declare -r icon_url="https://raw.githubusercontent.com/senbox-org/snap-installer/${appver}.0/images/${icon_file}"
 declare -r icon_sha256sum="0a887f0d8a53ec17036e0149710b44040ca4b5dc7dbdc342b50cc24d5e97670b"
 
 # install curl
