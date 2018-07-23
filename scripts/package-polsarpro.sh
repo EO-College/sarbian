@@ -14,11 +14,11 @@ declare -r BUILDDIR="${SCRIPTDIR}/build"
 declare -r PKGDIR="${SCRIPTDIR}/pkg"
 
 ##
-# Simple wrapper around md5sum. Returns 0 if md5 and file match
+# Simple wrapper around sha256sum. Returns 0 if sha256 and file match
 # $1: file to check
-# $2: (expected) md5 hash of the file
-function checkFileMd5 {
-    md5sum "$1" | cut -d' ' -f1 | grep -o "$2" > /dev/null
+# $2: (expected) sha256 hash of the file
+function checkFile {
+    sha256sum "$1" | cut -d' ' -f1 | grep -o "$2" > /dev/null
     return $?
 }
 
@@ -27,13 +27,13 @@ function checkFileMd5 {
 declare -r pkgname="polsarpro"
 declare -r pkgver="5.0.4"
 declare -r arch="amd64"
-declare -r file="PolSARpro_v${pkgver}_Linux_20150607.rar"
-declare -r url="https://earth.esa.int/documents/653194/1960708/${file%.rar}"
-declare -r md5sum="99ad2b0165eb36fed82cb88361fd2161"
+declare -r file="${pkgname}-${pkgver}.tar.gz"
+declare -r url="https://github.com/EO-College/${pkgname}/archive/v${pkgver}.tar.gz"
+declare -r sha256sum="ea6b63e77db30b657a8425ded40828c7a75ebee6610f5c08bc3cb79ecbaa10c1"
 
 declare -r PP_PKG_FILES="$SCRIPTDIR/polsarpro-pkg-files"
 declare -r PP_BUILDDIR="$BUILDDIR/${pkgname}"
-declare -r PP_SRCDIR="$PP_BUILDDIR/src"
+declare -r PP_SRCDIR="$PP_BUILDDIR/src/${pkgname}-${pkgver}"
 declare -r PP_PKGDIR="$PP_BUILDDIR/pkg"
 
 mkdir -p "$CACHEDIR" "$PP_SRCDIR" "$PP_PKGDIR"
@@ -51,15 +51,15 @@ function install_builddeps() {
 function retrieve_source() {
     # download package
     echo ">>> Downloading PolSARpro archive, if required"
-    if [[ -e "$CACHEDIR/$file" ]] && $(checkFileMd5 "$CACHEDIR/$file" "$md5sum"); then
+    if [[ -e "$CACHEDIR/$file" ]] && $(checkFile "$CACHEDIR/$file" "$sha256sum"); then
         echo ">>> No download necessary, using cached version."
     else
         curl -L "$url" -o "$CACHEDIR/$file"
 
         echo -n ">>> Verifying checksum... "
-        if ! $(checkFileMd5 "$CACHEDIR/$file" "$md5sum"); then
+        if ! $(checkFile "$CACHEDIR/$file" "$sha256sum"); then
             echo "FAIL"
-            echo ">>> Downloaded PolSARpro archive '$CACHEDIR/$file' does not match md5sum '$md5sum'." >> /dev/stderr
+            echo ">>> Downloaded PolSARpro archive '$CACHEDIR/$file' does not match sha256sum '$sha256sum'." >> /dev/stderr
             echo ">>> Aborting." >> /dev/stderr
             exit 1
         fi
@@ -72,7 +72,7 @@ function retrieve_source() {
 function extract_files() {
     echo ">>> Extracting source..."
     # extract files
-    unrar x "$CACHEDIR/$file" "$PP_SRCDIR"
+    tar -xzf "$CACHEDIR/$file" -C "$PP_SRCDIR/.."
 }
 
 function build() {
@@ -102,6 +102,7 @@ function create_package() {
 
     # remove unnecessary files
     rm -rf "$PP_PKGDIR/opt/${pkgname}/Soft/Compil_PolSARpro_v5_Linux.bat"
+    rm -rf "$PP_PKGDIR/opt/${pkgname}/GUI/Images/Thumbs.db"
     # we place a text file with the license into the correct directory, so the
     # pdf is obsolete
     rm -rf "$PP_PKGDIR/opt/${pkgname}/license.pdf"
