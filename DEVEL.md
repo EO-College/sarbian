@@ -106,4 +106,4 @@ Scripts to download either Debian packages (e.g. for RStudio) or other files
 
 ### `package-*.sh`
 
-Scripts to download and compile source code and create a Debian packages.
+Scripts to download and compile source code and create Debian packages.
