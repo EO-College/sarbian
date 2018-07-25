@@ -14,7 +14,13 @@ if [ "$architecture" = "amd64" ]; then
     ##
     # update SNAP
     echo ">>> Launching SNAP and update modules..."
-    /opt/snap/bin/snap --nosplash --nogui --modules --update-all
+    # until https://github.com/senbox-org/snap-desktop/issues/57 and
+    # https://senbox.atlassian.net/browse/SNAP-927 are resolved, we need to
+    # abort the update process when it has finished actually doing things
+    /opt/snap/bin/snap --nosplash --nogui --modules --update-all 2>&1 | while read -r line; do
+        echo "$line"
+        [ "$line" = "updates=0" ] && sleep 2 && /usr/bin/pkill -TERM -f "snap/jre/bin/java"
+    done
     ##
     # create symlinks for the executables
     echo ">>> Linking executables into '/usr/local/bin'..."
