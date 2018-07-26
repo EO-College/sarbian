@@ -1,0 +1,8 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0
+
+Files: *
+Copyright: 1987-2014 US Government
+License: GPL-3
+ On Debian systems, the complete text of the GNU General Public License can be
+ found in /usr/share/common-licenses.
+

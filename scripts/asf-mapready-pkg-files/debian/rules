@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+# This script uses debhelper by Joey Hess
+# export DH_VERBOSE=1
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- --prefix=/usr
+
+override_dh_installchangelogs:
+	$(MAKE) changelog
+	dh_installchangelogs changelog

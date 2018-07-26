@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=ASF View
+Comment=Viewer for most image types that ASF software can ingest or export
+Exec=/usr/bin/asf_view
+Icon=/usr/share/asf_tools/mapready/asf_view_icon.ico
+Type=Application
+Categories=Application;Geography;

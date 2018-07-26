@@ -1,0 +1,769 @@
+diff --git a/include/ifm.h b/include/ifm.h
+index 7c2c85b4c..a81355f68 100644
+--- a/include/ifm.h
++++ b/include/ifm.h
+@@ -25,11 +25,6 @@ typedef struct {
+     unsigned char blue;
+ } RGBDATA;
+ 
+-#ifndef __bool_var
+-#define __bool_var
+-typedef int bool;
+-#endif
+-
+ #ifndef __data_t_var
+ #define __data_t_var
+ typedef int data_t;
+diff --git a/src/auto_refine_base/auto_refine_base.c b/src/auto_refine_base/auto_refine_base.c
+index 4618132e8..2706cc402 100644
+--- a/src/auto_refine_base/auto_refine_base.c
++++ b/src/auto_refine_base/auto_refine_base.c
+@@ -1,5 +1,6 @@
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ #ifndef TRUE
+ #define TRUE 1
+diff --git a/src/c2p/c2p.c b/src/c2p/c2p.c
+index 5509f0063..fe9eeec19 100644
+--- a/src/c2p/c2p.c
++++ b/src/c2p/c2p.c
+@@ -64,6 +64,7 @@ BUGS:
+ #include "asf_insar.h"
+ #include "asf_sar.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ #define VERSION		1.5
+ #define BUF		256
+diff --git a/src/coh/coh.c b/src/coh/coh.c
+index f3bfa7405..d009c7e11 100644
+--- a/src/coh/coh.c
++++ b/src/coh/coh.c
+@@ -89,6 +89,7 @@ BUGS:
+ #include "asf_meta.h"
+ #include "asf_insar.h"
+ #include "ifm.h" /* For Cabs() function */
++#include <stdbool.h>
+ 
+ #define VERSION      2.1
+ #define WINDOW_SIZE  3
+diff --git a/src/convert2jpeg/code_jpeg.c b/src/convert2jpeg/code_jpeg.c
+index 1a7637c9b..0ed62a8a1 100644
+--- a/src/convert2jpeg/code_jpeg.c
++++ b/src/convert2jpeg/code_jpeg.c
+@@ -1,5 +1,6 @@
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "ifm2ppm.h"
+ #include "jpeglib.h"
+ 
+diff --git a/src/convert2jpeg/colortable.c b/src/convert2jpeg/colortable.c
+index e9f059992..4dc418afd 100644
+--- a/src/convert2jpeg/colortable.c
++++ b/src/convert2jpeg/colortable.c
+@@ -25,6 +25,7 @@ PROGRAM HISTORY:
+ 1.0 - Mike Shindle - Original Development, December 11, 1996.
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "ifm2ppm.h"
+ 
+ /* local constants */
+diff --git a/src/convert2jpeg/convert2jpeg.c b/src/convert2jpeg/convert2jpeg.c
+index f3e8193b3..545630373 100644
+--- a/src/convert2jpeg/convert2jpeg.c
++++ b/src/convert2jpeg/convert2jpeg.c
+@@ -85,6 +85,7 @@ BUGS:
+ 
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "ifm2ppm.h"
+ #include "asf_meta.h"
+ #include <sys/types.h>  /* for fstat function */
+diff --git a/src/convert2jpeg/decode_jpeg.c b/src/convert2jpeg/decode_jpeg.c
+index 7a7480b8c..8ea56de70 100644
+--- a/src/convert2jpeg/decode_jpeg.c
++++ b/src/convert2jpeg/decode_jpeg.c
+@@ -5,6 +5,7 @@ it to the given LAS image.
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "ifm2ppm.h"
+ #include "ddr.h"
+ 
+diff --git a/src/convert2jpeg/jpeg2asf.c b/src/convert2jpeg/jpeg2asf.c
+index f172e4fba..c81d77acb 100644
+--- a/src/convert2jpeg/jpeg2asf.c
++++ b/src/convert2jpeg/jpeg2asf.c
+@@ -74,6 +74,7 @@ BUGS:
+ ******************************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "ifm2ppm.h"
+ #include "ddr.h"
+ 
+diff --git a/src/coregister_fine/coherence.c b/src/coregister_fine/coherence.c
+index 3e85e0a05..e353b98c0 100644
+--- a/src/coregister_fine/coherence.c
++++ b/src/coregister_fine/coherence.c
+@@ -3,6 +3,7 @@
+ #include "las.h"
+ #include "asf_meta.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "ddr.h"
+ 
+ #ifndef TWOPI
+diff --git a/src/coregister_fine/coregister_fine.c b/src/coregister_fine/coregister_fine.c
+index 1e5079771..d7b43787d 100644
+--- a/src/coregister_fine/coregister_fine.c
++++ b/src/coregister_fine/coregister_fine.c
+@@ -109,6 +109,7 @@ BUGS:
+ #include "asf.h"
+ #include "asf_meta.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_endian.h"
+ 
+ #define borderX 80	/*Distances from edge of image to start correlating.*/
+diff --git a/src/coregister_fine/fft_corr.c b/src/coregister_fine/fft_corr.c
+index f7c785e55..30cddc049 100644
+--- a/src/coregister_fine/fft_corr.c
++++ b/src/coregister_fine/fft_corr.c
+@@ -1,6 +1,7 @@
+ /*GetFFTCorrelation: computes the maximum FFT value of a given interferogram.*/
+ #include "fft.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include <math.h>
+ 
+ float getFFTCorrelation(complexFloat *igram,int sizeX,int sizeY);
+diff --git a/src/detect_cr/detect_cr.c b/src/detect_cr/detect_cr.c
+index 00a01335a..cd60d4d7c 100644
+--- a/src/detect_cr/detect_cr.c
++++ b/src/detect_cr/detect_cr.c
+@@ -104,6 +104,7 @@ file. Save yourself the time and trouble, and use edit_man_header.pl. :)
+ #include "asf_nan.h"
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ #include "fft.h"
+ #include "fft2d.h"
+diff --git a/src/detect_cr/detect_cr.h b/src/detect_cr/detect_cr.h
+index 7c361da76..a2bcd934e 100644
+--- a/src/detect_cr/detect_cr.h
++++ b/src/detect_cr/detect_cr.h
+@@ -4,6 +4,7 @@
+ #define FLAG_SET 1
+ #define FLAG_NOT_SET -1
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* Index keys for all flags used in this program via a 'flags' array */
+ typedef enum {
+diff --git a/src/escher/escher.h b/src/escher/escher.h
+index 8ba8c4d94..149cff9fa 100644
+--- a/src/escher/escher.h
++++ b/src/escher/escher.h
+@@ -1,6 +1,7 @@
+ 
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "ddr.h"
+ #include "asf_meta.h"
+ 
+diff --git a/src/igram/igram.c b/src/igram/igram.c
+index 966c2451d..d95435276 100644
+--- a/src/igram/igram.c
++++ b/src/igram/igram.c
+@@ -85,6 +85,7 @@ BUGS:
+ 
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ 
+ /*
+diff --git a/src/libasf_insar/asf_coregister.c b/src/libasf_insar/asf_coregister.c
+index fe42515c0..b040fc411 100644
+--- a/src/libasf_insar/asf_coregister.c
++++ b/src/libasf_insar/asf_coregister.c
+@@ -5,6 +5,7 @@
+ #include "functions.h"
+ #include "fft.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_endian.h"
+ 
+ // Coarse coregistration
+diff --git a/src/libasf_insar/escher.c b/src/libasf_insar/escher.c
+index 66a6162fc..2b460919e 100644
+--- a/src/libasf_insar/escher.c
++++ b/src/libasf_insar/escher.c
+@@ -1,5 +1,6 @@
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ #include "asf_endian.h"
+ #include "asf_insar.h"
+diff --git a/src/libasf_insar/multilook.c b/src/libasf_insar/multilook.c
+index edc8c6d15..cc7eb3db3 100644
+--- a/src/libasf_insar/multilook.c
++++ b/src/libasf_insar/multilook.c
+@@ -2,6 +2,7 @@
+ #include "asf_meta.h"
+ #include "asf_export.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* local constants */
+ #define VERSION 4.0
+diff --git a/src/libasf_insar/refine_baseline.c b/src/libasf_insar/refine_baseline.c
+index 422bf1108..abe3c9a89 100644
+--- a/src/libasf_insar/refine_baseline.c
++++ b/src/libasf_insar/refine_baseline.c
+@@ -1,5 +1,6 @@
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ 
+ // Local function declaration
+diff --git a/src/libifm/SNR.c b/src/libifm/SNR.c
+index 5bb5f8d89..ab371ef7f 100644
+--- a/src/libifm/SNR.c
++++ b/src/libifm/SNR.c
+@@ -29,6 +29,7 @@ PROGRAM HISTORY:
+ #include "asf.h"
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ float SNR(float *v, int n, int x, int y, int d)
+ {
+diff --git a/src/libifm/c2p.c b/src/libifm/c2p.c
+index af63d1179..68f985e10 100644
+--- a/src/libifm/c2p.c
++++ b/src/libifm/c2p.c
+@@ -30,6 +30,7 @@ BUGS:
+ 
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ 
+ int 
+diff --git a/src/libifm/cabs.c b/src/libifm/cabs.c
+index 087d07f58..944377c0f 100644
+--- a/src/libifm/cabs.c
++++ b/src/libifm/cabs.c
+@@ -21,6 +21,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ float Cabs(complexFloat a)
+ {
+diff --git a/src/libifm/cadd.c b/src/libifm/cadd.c
+index 9b77b2ecb..4fd523f21 100644
+--- a/src/libifm/cadd.c
++++ b/src/libifm/cadd.c
+@@ -33,6 +33,7 @@ BUGS:
+ 
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ 
+ complexDouble Cadd_d(complexDouble a, complexDouble b) {
+diff --git a/src/libifm/cconj.c b/src/libifm/cconj.c
+index 9f44bb14c..2a8bf17e6 100644
+--- a/src/libifm/cconj.c
++++ b/src/libifm/cconj.c
+@@ -23,6 +23,7 @@ PROGRAM HISTORY:
+    1.0 - Mike Shindle & Rob Fatland. Original Development.
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ complexFloat Cconj(complexFloat a)
+ {
+diff --git a/src/libifm/checkDataType.c b/src/libifm/checkDataType.c
+index 39ed3ab42..ec70b55c9 100644
+--- a/src/libifm/checkDataType.c
++++ b/src/libifm/checkDataType.c
+@@ -22,6 +22,7 @@ PROGRAM HISTORY:
+     1.0 - Rob Fatland & Mike Shindle - Original Devlopment
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ int checkDataType(data_t type)
+ {
+diff --git a/src/libifm/cmul.c b/src/libifm/cmul.c
+index 69c67e4bd..a3b5fe775 100644
+--- a/src/libifm/cmul.c
++++ b/src/libifm/cmul.c
+@@ -21,6 +21,7 @@ PROGRAM HISTORY:
+   1.0  - Mike Shindle & Rob Fatland. Original development.
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ complexFloat Cmul(complexFloat a, complexFloat b)
+ {
+diff --git a/src/libifm/cphase.c b/src/libifm/cphase.c
+index d18999c87..74ab8bcce 100644
+--- a/src/libifm/cphase.c
++++ b/src/libifm/cphase.c
+@@ -21,6 +21,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ float Cphase(complexFloat a)
+ {
+diff --git a/src/libifm/cpxmatrix.c b/src/libifm/cpxmatrix.c
+index e10f87657..2a9ed99f4 100644
+--- a/src/libifm/cpxmatrix.c
++++ b/src/libifm/cpxmatrix.c
+@@ -1,6 +1,7 @@
+ #include "asf.h"
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ complexFloat **cpxmatrix(int nrl, int nrh, int ncl, int nch)
+ {
+diff --git a/src/libifm/cpxvector.c b/src/libifm/cpxvector.c
+index 52f67b534..447027bf0 100644
+--- a/src/libifm/cpxvector.c
++++ b/src/libifm/cpxvector.c
+@@ -1,6 +1,7 @@
+ #include "asf.h"
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ complexFloat *cpxvector(int nl, int nh)
+ {
+diff --git a/src/libifm/csdiv.c b/src/libifm/csdiv.c
+index 9f22dd37b..cc3c09bb9 100644
+--- a/src/libifm/csdiv.c
++++ b/src/libifm/csdiv.c
+@@ -22,6 +22,7 @@ PROGRAM HISTORY:
+     1.0 - Mike Shindle & Rob Fatland - Original Development
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ complexFloat Csdiv(float s, complexFloat a) {
+    complexFloat x;
+diff --git a/src/libifm/csmul.c b/src/libifm/csmul.c
+index 9d6555ea2..330583e09 100644
+--- a/src/libifm/csmul.c
++++ b/src/libifm/csmul.c
+@@ -21,6 +21,7 @@ PROGRAM HISTORY:
+   1.0  - Mike Shindle & Rob Fatland. Original development.
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ complexFloat Csmul(float s, complexFloat b)
+ {
+diff --git a/src/libifm/czero.c b/src/libifm/czero.c
+index bee7a2905..672f66163 100644
+--- a/src/libifm/czero.c
++++ b/src/libifm/czero.c
+@@ -30,6 +30,7 @@ BUGS:
+ 
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ complexFloat Czero() {
+   complexFloat zero;
+diff --git a/src/libifm/fft2d.c b/src/libifm/fft2d.c
+index ff7eedb88..ec7322d0e 100644
+--- a/src/libifm/fft2d.c
++++ b/src/libifm/fft2d.c
+@@ -29,6 +29,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void fourn(float *data, int *nn, int ndim, int isign);
+ 
+diff --git a/src/libifm/fileNumLines.c b/src/libifm/fileNumLines.c
+index cec41ccd2..4521ee77e 100644
+--- a/src/libifm/fileNumLines.c
++++ b/src/libifm/fileNumLines.c
+@@ -24,6 +24,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ int fileNumLines(char *fname)
+ {
+diff --git a/src/libifm/fourn.c b/src/libifm/fourn.c
+index 72d1206f9..8e13e67fe 100644
+--- a/src/libifm/fourn.c
++++ b/src/libifm/fourn.c
+@@ -36,6 +36,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void fourn(float *data, int *nn, int ndim, int isign)
+ {
+diff --git a/src/libifm/get_mean.c b/src/libifm/get_mean.c
+index d658a86a8..0adfacfee 100644
+--- a/src/libifm/get_mean.c
++++ b/src/libifm/get_mean.c
+@@ -22,6 +22,7 @@ PROGRAM HISTORY:
+ 
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ float get_mean(FILE *famp, int ns, int nl, int doAvg)
+ {
+diff --git a/src/libifm/get_meand.c b/src/libifm/get_meand.c
+index 423e22467..7500345ea 100644
+--- a/src/libifm/get_meand.c
++++ b/src/libifm/get_meand.c
+@@ -22,6 +22,7 @@ PROGRAM HISTORY:
+ 
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ double get_meand(FILE *famp, int ns, int nl, int doAvg)
+ {
+diff --git a/src/libifm/imos2d.c b/src/libifm/imos2d.c
+index 55bbe81df..e894a1458 100644
+--- a/src/libifm/imos2d.c
++++ b/src/libifm/imos2d.c
+@@ -27,6 +27,7 @@ PROGRAM HISTORY:
+ #include "asf.h"
+ #include "imsl.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* function declarations */
+ int init_coeff(int);
+diff --git a/src/libifm/minv1.c b/src/libifm/minv1.c
+index 5d9c10b1b..426150262 100644
+--- a/src/libifm/minv1.c
++++ b/src/libifm/minv1.c
+@@ -19,6 +19,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ #ifdef EPSILON
+ #undef EPSILON
+diff --git a/src/libifm/mxv1.c b/src/libifm/mxv1.c
+index 1fe733e59..1f50f5750 100644
+--- a/src/libifm/mxv1.c
++++ b/src/libifm/mxv1.c
+@@ -21,6 +21,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* prototype */
+ int fcpvec(float *from, float *to, int nitems);
+diff --git a/src/libifm/os2d.c b/src/libifm/os2d.c
+index d331c989e..69c405d3a 100644
+--- a/src/libifm/os2d.c
++++ b/src/libifm/os2d.c
+@@ -24,6 +24,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* Prototypes */
+ void fft2d (complexFloat *array, int n, int direction);
+diff --git a/src/libifm/oversamp2dCpx.c b/src/libifm/oversamp2dCpx.c
+index 17dd48f53..0757afa8a 100644
+--- a/src/libifm/oversamp2dCpx.c
++++ b/src/libifm/oversamp2dCpx.c
+@@ -27,6 +27,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* Prototype */
+ void os2d(complexFloat *v, complexFloat *vo, int dim, int os);
+diff --git a/src/libifm/print.c b/src/libifm/print.c
+index 2ca8b1ff1..6f5d29618 100644
+--- a/src/libifm/print.c
++++ b/src/libifm/print.c
+@@ -21,6 +21,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* print n-vector in a column */
+ void 
+diff --git a/src/libifm/readMatrix.c b/src/libifm/readMatrix.c
+index 0f5fd012b..b9cec3dce 100644
+--- a/src/libifm/readMatrix.c
++++ b/src/libifm/readMatrix.c
+@@ -41,6 +41,7 @@ PROGRAM HISTORY:
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void readMatrix(fnm, a, type, m, n, c0, r0, M, N, h0, h1)
+ char   *fnm;      /* source filename                   */
+diff --git a/src/libifm/readVector.c b/src/libifm/readVector.c
+index f98ee083f..0c1f7b5cd 100644
+--- a/src/libifm/readVector.c
++++ b/src/libifm/readVector.c
+@@ -25,6 +25,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ #include <unistd.h>
+ #include <fcntl.h>
+ 
+diff --git a/src/libifm/rm_sic.c b/src/libifm/rm_sic.c
+index 6401955c9..308039def 100644
+--- a/src/libifm/rm_sic.c
++++ b/src/libifm/rm_sic.c
+@@ -40,6 +40,7 @@ PROGRAM HISTORY:
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void ReadMatrixFromSIC(char *fnm,            /* source filename       */
+                        SIComplex **a,        /* destination buffer    */
+diff --git a/src/libifm/svdcmp.c b/src/libifm/svdcmp.c
+index 54fa163d6..1ed63bec1 100644
+--- a/src/libifm/svdcmp.c
++++ b/src/libifm/svdcmp.c
+@@ -1,5 +1,6 @@
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ static float at,bt,ct;
+ static float maxarg1,maxarg2;
+diff --git a/src/libifm/vector.c b/src/libifm/vector.c
+index 2a330ad37..bc6d0c08f 100644
+--- a/src/libifm/vector.c
++++ b/src/libifm/vector.c
+@@ -1,6 +1,7 @@
+ #include "asf.h"
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ float *
+ alloc_vector(int nl, int nh)
+diff --git a/src/libifm/wks_allocate.c b/src/libifm/wks_allocate.c
+index 22254115a..bc934ed71 100644
+--- a/src/libifm/wks_allocate.c
++++ b/src/libifm/wks_allocate.c
+@@ -21,6 +21,7 @@ PROGRAM HISTORY:
+ 
+ #include "imsl.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ /* imsl functions */
+ extern fftci_();
+diff --git a/src/libifm/writeAsciiVector.c b/src/libifm/writeAsciiVector.c
+index 26a0c71dc..d9951e45b 100644
+--- a/src/libifm/writeAsciiVector.c
++++ b/src/libifm/writeAsciiVector.c
+@@ -27,6 +27,7 @@ PROGRAM HISTORY:
+ ****************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void writeAsciiVector(void *v, char *fnm, data_t type, int n)
+ {
+diff --git a/src/libifm/writeVector.c b/src/libifm/writeVector.c
+index e1ae31e9a..41bec04b5 100644
+--- a/src/libifm/writeVector.c
++++ b/src/libifm/writeVector.c
+@@ -30,6 +30,7 @@ PROGRAM HISTORY:
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void writeVector (void *v, char *fnm, data_t type, int n)
+ {
+diff --git a/src/libifm/zeroPad.c b/src/libifm/zeroPad.c
+index ad4ae2bcf..18a0bb132 100644
+--- a/src/libifm/zeroPad.c
++++ b/src/libifm/zeroPad.c
+@@ -43,6 +43,7 @@ PROGRAM HISTORY:
+   1.0 - Rob Fatland & Mike Shindle - Original Development
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void zeroPad(complexFloat *vIn, complexFloat *vOut, int dim, int os)
+ {
+diff --git a/src/libifm/zeroPad2d.c b/src/libifm/zeroPad2d.c
+index ef0c138cf..e8f94b501 100644
+--- a/src/libifm/zeroPad2d.c
++++ b/src/libifm/zeroPad2d.c
+@@ -43,6 +43,7 @@ PROGRAM HISTORY:
+   1.0 - Rob Fatland & Mike Shindle - Original Development
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ 
+ void zeroPad2d(complexFloat **vIn, complexFloat **vOut, int dim, int os)
+ {
+diff --git a/src/multilook/c2i.c b/src/multilook/c2i.c
+index a8e91a9a5..0165556ea 100644
+--- a/src/multilook/c2i.c
++++ b/src/multilook/c2i.c
+@@ -33,6 +33,7 @@ PROGRAM HISTORY:
+ #include "asf.h"
+ 
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "multilook.h"
+ 
+ int c2i(float *amp, float *phase, RGBDATA *image, RGBDATA *table, int nsamples, float avg)
+diff --git a/src/multilook/colortable.c b/src/multilook/colortable.c
+index c0f2ba324..63af0d9df 100644
+--- a/src/multilook/colortable.c
++++ b/src/multilook/colortable.c
+@@ -22,6 +22,7 @@ PROGRAM HISTORY:
+ 1.0 - Mike Shindle - Original Development
+ ****************************************************************/
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "multilook.h"
+ 
+ void 
+diff --git a/src/multilook/multilook.c b/src/multilook/multilook.c
+index 6d9ea6fb8..99e901a94 100644
+--- a/src/multilook/multilook.c
++++ b/src/multilook/multilook.c
+@@ -91,6 +91,7 @@ BUGS:
+ #include "asf.h"
+ #include "las.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ #include "multilook.h"
+ #include "lzFetch.h"
+diff --git a/src/offset_test/fft_corr.c b/src/offset_test/fft_corr.c
+index f7c785e55..30cddc049 100644
+--- a/src/offset_test/fft_corr.c
++++ b/src/offset_test/fft_corr.c
+@@ -1,6 +1,7 @@
+ /*GetFFTCorrelation: computes the maximum FFT value of a given interferogram.*/
+ #include "fft.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include <math.h>
+ 
+ float getFFTCorrelation(complexFloat *igram,int sizeX,int sizeY);
+diff --git a/src/offset_test/offset_test.c b/src/offset_test/offset_test.c
+index e90f13915..bc7771bd2 100644
+--- a/src/offset_test/offset_test.c
++++ b/src/offset_test/offset_test.c
+@@ -98,11 +98,11 @@ file. Save yourself the time and trouble, and use edit_man_header.pl. :)
+ /*===================END ASF AUTO-GENERATED DOCUMENTATION===================*/
+ 
+ #include "asf.h"
+-#include "ifm.h"
+ #include "asf_meta.h"
+ #include "fft.h"
+ #include "fft2d.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "offset_test.h"
+ 
+ #define NUM_ARGS 3
+diff --git a/src/pta/pta.h b/src/pta/pta.h
+index f1a8deb40..3bb7927a0 100644
+--- a/src/pta/pta.h
++++ b/src/pta/pta.h
+@@ -4,6 +4,7 @@
+ #define FLAG_SET 1
+ #define FLAG_NOT_SET -1
+ #include "ifm.h"
++#include <stdbool.h>
+ #include <fftw3.h>
+ 
+ /* Evaluate to true if floats are within tolerance of each other.  */
+diff --git a/src/refine_base/bp.c b/src/refine_base/bp.c
+index 32a11772a..dc83bc625 100644
+--- a/src/refine_base/bp.c
++++ b/src/refine_base/bp.c
+@@ -54,6 +54,7 @@ BUGS:
+ ******************************************************************************/
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ 
+ /* local function declaration */
+diff --git a/src/refine_base/genab.c b/src/refine_base/genab.c
+index a3b04625c..746ae1f08 100644
+--- a/src/refine_base/genab.c
++++ b/src/refine_base/genab.c
+@@ -1,5 +1,6 @@
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ 
+ /* for convenience in a diagnostic */
+diff --git a/src/refine_base/getphase.c b/src/refine_base/getphase.c
+index c205dd3aa..31f7cb39d 100644
+--- a/src/refine_base/getphase.c
++++ b/src/refine_base/getphase.c
+@@ -1,5 +1,6 @@
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ 
+ 
+diff --git a/src/refine_base/test_base.c b/src/refine_base/test_base.c
+index b94a4b8c0..6dd9a3595 100644
+--- a/src/refine_base/test_base.c
++++ b/src/refine_base/test_base.c
+@@ -1,5 +1,6 @@
+ #include "asf.h"
+ #include "ifm.h"
++#include <stdbool.h>
+ #include "asf_meta.h"
+ 
+ int test_base(char *basefile, char *matfile, char *vecfile)

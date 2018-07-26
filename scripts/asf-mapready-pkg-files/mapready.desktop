@@ -1,0 +1,8 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Mapready
+Comment=A program for converting SAR data into a GIS-ready image
+Exec=/usr/bin/mapready
+Icon=/usr/share/asf_tools/mapready/mapready.ico
+Type=Application
+Categories=Application;Geography;

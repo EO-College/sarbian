@@ -1,0 +1,12 @@
+diff --git a/src/libasf_import/Makefile b/src/libasf_import/Makefile
+index c81de2a2e..dd256437a 100644
+--- a/src/libasf_import/Makefile
++++ b/src/libasf_import/Makefile
+@@ -84,7 +84,6 @@ OBJS  = \
+ 	import_terrasar.o \
+ 	import_polsarpro.o \
+ 	import_fgdc_meta.o \
+-	import_dem.o \
+ 	import_roipac.o \
+ 	import_smap.o \
+ 	import_seasat_h5.o \

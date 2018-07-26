@@ -1,0 +1,23 @@
+diff --git a/Makefile.in b/Makefile.in
+index 657921d91..f96d44d58 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -448,6 +448,18 @@ ifeq ($(DEBIAN_VERSION),MAKE-DEV)
+ endif
+ DATEFORMAT = "%a, %d %b %Y %T %z"
+ 
++changelog:
++	# Generate the changelog. I'm not looking forward to this.
++	echo "asf-mapready ($(DEBIAN_VERSION)) unstable; urgency=low" \
++		> changelog
++	git log -n 10 | \
++		sed -e "s/^/    /" \
++		    -e "/^    commit/s/^    /  * /" \
++		>> changelog
++	echo " -- Jenkins <uso@uaf.alaska.edu>  $$(date +'%a, %d %b %Y %T %z')" \
++		>> changelog
++	# I'm glad we got that over with.
++
+ # Generate a debian package.
+ deb: default
+ 	if [ -d asf-mapready ]; then \
