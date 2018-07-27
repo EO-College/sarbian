@@ -28,14 +28,14 @@ rm -rf "$PKGDIR"
 
 ##
 # remove files our build scripts placed in the image build tree
-declare -r PKGCHROOT="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/packages.chroot/"
-declare -r INCLUDESCHROOT="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/includes.chroot/"
+declare -r PKGCHROOT="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/packages.chroot"
+declare -r INCLUDESCHROOT="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/includes.chroot"
 
 echo ">>> Emptying packages.chroot..."
 rm -rf "$PKGCHROOT"/*
 echo ">>> Removing files placed by build scripts from includes.chroot..."
 rm -rf "$INCLUDESCHROOT/usr/local/bin/"
 rm -rf "$INCLUDESCHROOT/usr/local/share/SNAP_Icon_48.png"
-rm -rf "$INCLUDESCHROOT/usr/local/share/applications/"
+find "$INCLUDESCHROOT/usr/local/share/applications/" -mindepth 1 -not -name "mimeapps.list" -print -delete
 
 echo ">>> Clean-up finished."
