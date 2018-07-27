@@ -1,5 +1,7 @@
-asf-mapready (0~20180618) unstable; urgency=low
+asf-mapready (0~20180618-1) unstable; urgency=medium
 
-  * Packaging ASF MapReady
+  * Initial release
+  * Removed obsolete "import_dem.o" from its sub-Makefile
+  * Replaced a custom bool type with bool from stdbool.h
 
- -- SAR-EDU Team <saredu@eo-college.org>  Wed, 25 Jul 2018 16:17:00 +0200
+ -- SARbian Team <sarbian@uni-jena.de>  Thu, 26 Jul 2018 15:48:10 +0200

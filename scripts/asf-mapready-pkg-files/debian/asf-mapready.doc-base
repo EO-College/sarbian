@@ -1,0 +1,10 @@
+Document: asf-mapready
+Title: ASF MapReady Documentation
+Author: Alaska Satellite Facility Engineering Group
+Abstract: These manuals describes what ASF MapReady is
+ and how it can be used to
+ process SAR data.
+Section: Science/Geoscience
+
+Format: PDF
+Files: /usr/share/asf_tools/doc/*.pdf

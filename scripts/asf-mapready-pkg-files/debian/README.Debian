@@ -1,0 +1,8 @@
+asf-mapready for Debian
+----------------------
+
+* obsolete object file "import_dem.o" has been removed from a Makefile
+* custom implementation of type bool had to replaced by stdbool.h because of compilation errors
+* *.desktop files of this package are not part of upstream yet
+
+ -- SARbian Team <sarbian@uni-jena.de>  Thu, 26 Jul 2018 15:48:10 +0200
