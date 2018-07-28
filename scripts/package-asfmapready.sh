@@ -20,6 +20,7 @@ declare -r _pkgname="ASF_MapReady"
 # make sure to use the same version number as used in debian/changelog here!
 declare -r pkgver="0~20180618"
 declare -r pkgrel="1"
+declare -r arch="amd64"
 # we cannot just download the tarballs from our tags, we need the whole .git
 # directory for creating the changelog
 declare -r repourl="https://github.com/EO-College/${_pkgname}"
