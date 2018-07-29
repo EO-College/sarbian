@@ -48,6 +48,12 @@ The following software is installed for the processing and handling of SAR data.
 If you want to help building SARbian you should have a look at the [developer manual](DEVEL.md)
 and the [Live Systems Manual](https://live-team.pages.debian.net/live-manual/html/live-manual/about-manual.en.html).
 
+## License
+
+The scripts we use for packaging and triggering live-build are free software
+distributed under the terms of the GNU General Public License 3.0 or any later
+version.
+
 ## Acknowledgement
 
 We would like to thank the [Debian Project](https://debian.org) and the [Debian Live Project](https://wiki.debian.org/DebianLive).
