@@ -5,12 +5,12 @@
 set -e
 
 # python2 packages
-for pkg in numpy scipy matplotlib git+https://github.com/johntruckenbrodt/pyroSAR.git; do
+for pkg in numpy scipy matplotlib pyroSAR spatialist; do
     pip2 install "$pkg"
 done
 
 # python3 packages
-for pkg in numpy scipy; do
+for pkg in numpy scipy pyroSAR spatialist; do
     pip3 install "$pkg"
 done
 
