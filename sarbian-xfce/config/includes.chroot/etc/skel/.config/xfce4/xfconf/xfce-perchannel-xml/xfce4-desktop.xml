@@ -27,7 +27,7 @@
             <value type="uint" value="65535"/>
           </property>
           <property name="image-style" type="int" value="3"/>
-          <property name="last-image" type="string" value="/usr/local/share/sarbian/images/sarbian-desktop-wallpaper-draft1-1920.jpg"/>
+          <property name="last-image" type="string" value="/usr/local/share/sarbian/images/sarbian-desktop-wallpaper.jpg"/>
           <property name="backdrop-cycle-enable" type="bool" value="false"/>
           <property name="backdrop-cycle-period" type="int" value="0"/>
           <property name="backdrop-cycle-random-order" type="bool" value="true"/>
