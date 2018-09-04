@@ -1,2 +1,4 @@
 [Default Applications]
 application/pdf=evince.desktop
+image/jpeg=ristretto.desktop
+text/markdown=mousepad.desktop
