@@ -29,11 +29,13 @@ The following software is installed for the processing and handling of SAR data.
 |[DORIS](http://doris.tudelft.nl/usermanual/index.html)| Debian repository|GPL-3.0|
 |[SNAPHU](https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/)| Debian repository| [common](http://metadata.ftp-master.debian.org/changelogs/non-free/s/snaphu/snaphu_1.4.2-2_copyright)|
 |[Python 2 and 3](python.org), incl. pip| Debian repository|python-2.0|
-|[R (r-base)](https://www.r-project.org/)| Debian repository|GPL-2.0|
-|[pyroSAR](https://github.com/johntruckenbrodt/pyroSAR)| via pip from github|MIT|
+|[pyroSAR](https://github.com/johntruckenbrodt/pyroSAR)| via pip from PyPI|MIT|
+|[spatialist](https://github.com/johntruckenbrodt/spatialist) | via pip from PyPI|MIT|
 |[PyRAT](https://github.com/birgander2/PyRAT)| via pip from github|MPL-2.0|
+|[R (r-base)](https://www.r-project.org/)| Debian repository|GPL-2.0|
 |[RStudio](rstudio.com)| Debian package from rstudio.com|AGPL-3.0|
 |[R Shiny](https://shiny.rstudio.com/)| via R package manager|GPL-3.0|
+|[Octave](https://www.gnu.org/software/octave/) | Debian repository|GPL-3.0|
 
 ## Utility Software
 |Utility|Software Name |
