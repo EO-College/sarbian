@@ -18,24 +18,67 @@ Keep in mind, that when using SARbian in live mode, changes and files that are n
 ## SAR Processing Software
 The following software is installed for the processing and handling of SAR data.
 
+### General SAR Processing
 |Software name|Installation source |License|
 |:-----------|:-----------|:-----------------|
 |[ESA SNAP and Sentinel-1 Toolbox](http://step.esa.int/main/toolboxes/snap/) | [SNAP Installer](http://step.esa.int/main/download/)| GPL-3.0|
-|[PolSARPro 5.0](https://earth.esa.int/web/polsarpro/home)| own package build| GPL-2.0|
 |[ASF MapReady](https://github.com/asfadmin/ASF_MapReady)| own package build|GPL-3.0|
+|[pyroSAR](https://github.com/johntruckenbrodt/pyroSAR)| via pip from PyPI|MIT|
+
+### SAR polarimetry
+|Software name|Installation source |License|
+|:-----------|:-----------|:-----------------|
+|[PolSARPro 5.0](https://earth.esa.int/web/polsarpro/home)| own package build| GPL-2.0|
+
+### SAR interferometry
+|Software name|Installation source |License|
+|:-----------|:-----------|:-----------------|
+|[DORIS](http://doris.tudelft.nl/usermanual/index.html)| Debian repository|GPL-3.0|
+|[SNAPHU](https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/)| Debian repository| [common](http://metadata.ftp-master.debian.org/changelogs/non-free/s/snaphu/snaphu_1.4.2-2_copyright)|
+|[PyRAT](https://github.com/birgander2/PyRAT)| via pip from github|MPL-2.0|
+
+### GIS
+|Software name|Installation source |License|
+|:-----------|:-----------|:-----------------|
 |[GDAL](gdal.org)| Debian repository| [X11/MIT](https://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatexactlywasthelicensetermsforGDAL)
 |[QGIS](qgis.org)| Debian repository <br> APT pinning configured for QGIS from backports|GPL-2.0|
 |[GRASS GIS](https://grass.osgeo.org/)| Debian repository|GPL-2.0|
-|[DORIS](http://doris.tudelft.nl/usermanual/index.html)| Debian repository|GPL-3.0|
-|[SNAPHU](https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/)| Debian repository| [common](http://metadata.ftp-master.debian.org/changelogs/non-free/s/snaphu/snaphu_1.4.2-2_copyright)|
-|[Python 2 and 3](python.org), incl. pip| Debian repository|python-2.0|
+
+### Python
+|Software name|Installation source |License|
+|:-----------|:-----------|:-----------------|
+|[Python 2 and 3](python.org), incl. pip| Debian repository|Python-2.0|
+|[matplotlib](https://pypi.org/project/matplotlib/)| via pip from PyPI|Python-2.0| 
+|[numpy](https://pypi.org/project/numpy/)| via pip from PyPI|BSD-3-Clause|
+|[PyRAT](https://github.com/birgander2/PyRAT)| via pip from Github|MPL-2.0|
 |[pyroSAR](https://github.com/johntruckenbrodt/pyroSAR)| via pip from PyPI|MIT|
+|[scipy](https://pypi.org/project/scipy/)| via pip from PyPI|BSD-3-Clause|
 |[spatialist](https://github.com/johntruckenbrodt/spatialist) | via pip from PyPI|MIT|
-|[PyRAT](https://github.com/birgander2/PyRAT)| via pip from github|MPL-2.0|
+
+### R
+|Software name|Installation source |License|
+|:-----------|:-----------|:-----------------|
 |[R (r-base)](https://www.r-project.org/)| Debian repository|GPL-2.0|
 |[RStudio](rstudio.com)| Debian package from rstudio.com|AGPL-3.0|
-|[R Shiny](https://shiny.rstudio.com/)| via R package manager|GPL-3.0|
+|[abind](https://cran.r-project.org/web/packages/abind/)| via R package manager|LGPL-2.0| 
+|[jpeg](https://cran.r-project.org/web/packages/jpeg/)| via R package manager|GPL-2.0|
+|[mapproj](https://cran.r-project.org/web/packages/mapproj/)| via R package manager|LPL-1.02|
+|[raster](https://cran.r-project.org/web/packages/raster/)| via R package manager|GPL-3.0| 
+|[rgdal](https://cran.r-project.org/web/packages/rgdal/)| via R package manager|GPL-2.0| 
+|[rgeos](https://cran.r-project.org/web/packages/rgeos)| via R package manager|GPL-2.0| 
+|[shiny](https://cran.r-project.org/web/packages/shiny/)| via R package manager|GPL-3.0|
+|[sp](https://cran.r-project.org/web/packages/sp/)| via R package manager|GPL-2.0|
+
+### Octave
+|Software name|Installation source |License|
+|:-----------|:-----------|:-----------------|
 |[Octave](https://www.gnu.org/software/octave/) | Debian repository|GPL-3.0|
+|[Computational Geometry](https://octave.sourceforge.io/geometry/)| Debian repository|GPL-3.0, BSD-2-Clause-FreeBSD, BSL-1.0|
+|[Image Processing](https://octave.sourceforge.io/image/)| Debian repository|GPL-3.0|
+|[Linear algebra](https://octave.sourceforge.io/linear-algebra/)| Debian repository|GPL-3.0, LGPL-3.0, BSD-2-Clause-FreeBSD|
+|[Mapping Functions](https://octave.sourceforge.io/mapping)| Debian repository|GPL-3.0|
+|[netcdf](https://octave.sourceforge.io/netcdf)| Debian repository|GPL-2.0|
+|[The NaN-toolbox](https://octave.sourceforge.io/nan)| Debian repository|GPL-3.0|
 
 ## Utility Software
 |Utility|Software Name |
