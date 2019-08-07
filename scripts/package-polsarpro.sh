@@ -23,7 +23,8 @@ set -e
 
 ##
 # define important directories
-declare -r SCRIPTDIR="$(readlink -f "$(dirname "$0")")"
+SCRIPTDIR="$(dirname "$(readlink -f "$0")")"
+readonly SCRIPTDIR
 declare -r CACHEDIR="${SCRIPTDIR}/cache"
 declare -r BUILDDIR="${SCRIPTDIR}/build"
 declare -r PKGDIR="${SCRIPTDIR}/pkg"
@@ -40,9 +41,10 @@ function checkFile {
 ###############################################################################
 # make necessary adjustments when using a newer versions
 declare -r pkgname="polsarpro"
-declare -r pkgver="5.0.4"
+declare -r pkgver="6.0.1"
 declare -r arch="amd64"
-declare -r file="${pkgname}-${pkgver}.tar.gz"
+#declare -r file="${pkgname}-${pkgver}.tar.gz"
+declare -r file="PolSARpro_v6.0_Biomass_Edition_Package_Linux.zip"
 declare -r url="https://github.com/EO-College/${pkgname}/archive/v${pkgver}.tar.gz"
 declare -r sha256sum="ea6b63e77db30b657a8425ded40828c7a75ebee6610f5c08bc3cb79ecbaa10c1"
 
@@ -51,6 +53,7 @@ declare -r PP_BUILDDIR="$BUILDDIR/${pkgname}"
 declare -r PP_SRCDIR="$PP_BUILDDIR/src/${pkgname}-${pkgver}"
 declare -r PP_PKGDIR="$PP_BUILDDIR/pkg"
 
+[[ -e "$PP_BUILDDIR" ]] && rm -rf "$PP_BUILDDIR"
 mkdir -p "$CACHEDIR" "$PP_SRCDIR" "$PP_PKGDIR"
 
 ###############################################################################
@@ -60,19 +63,19 @@ function install_builddeps() {
     echo ">>> Installing prerequisites..."
     sleep 0.1
     sudo apt update
-    sudo apt install --assume-yes curl unrar fakeroot
+    sudo apt install --assume-yes curl unzip fakeroot
 }
 
 function retrieve_source() {
     # download package
     echo ">>> Downloading PolSARpro archive, if required"
-    if [[ -e "$CACHEDIR/$file" ]] && $(checkFile "$CACHEDIR/$file" "$sha256sum"); then
+    if [[ -e "$CACHEDIR/$file" ]] && checkFile "$CACHEDIR/$file" "$sha256sum"; then
         echo ">>> No download necessary, using cached version."
     else
         curl -L "$url" -o "$CACHEDIR/$file"
 
         echo -n ">>> Verifying checksum... "
-        if ! $(checkFile "$CACHEDIR/$file" "$sha256sum"); then
+        if ! checkFile "$CACHEDIR/$file" "$sha256sum"; then
             echo "FAIL"
             echo ">>> Downloaded PolSARpro archive '$CACHEDIR/$file' does not match sha256sum '$sha256sum'." >> /dev/stderr
             echo ">>> Aborting." >> /dev/stderr
@@ -87,7 +90,26 @@ function retrieve_source() {
 function extract_files() {
     echo ">>> Extracting source..."
     # extract files
-    tar -xzf "$CACHEDIR/$file" -C "$PP_SRCDIR/.."
+    #tar -xzf "$CACHEDIR/$file" -C "$PP_SRCDIR/.."
+    unzip -q "$CACHEDIR/$file" -d "$PP_SRCDIR"
+}
+
+function prepare() {
+    echo ">>> Doing some preparations before building..."
+    # delete bin directory because it contains windows binaries
+    rm -rf "$PP_SRCDIR/Soft/bin"
+    # delete object file from src directory
+    rm -rf "$PP_SRCDIR/Soft/src/lib/PolSARproLib.o"
+
+    # copy the included dependecies into the bin directory
+    # TODO: this must not be part of the final package
+    # h5dump from hdf5-tools, patch ./PolSARpro_v6.0_Biomass_Edition.tcl
+    # 7za from p7zip-full, patch ./GUI/data_import/SENTINEL1_Input_Zip_File.tcl
+    # curl from curl, patch ./PolSARpro_v6.0_Biomass_Edition.tcl
+    # gnuplot from gnuplot, patch seems not necessary, uses /usr/bin/gnuplot on Linux/Unix
+    mkdir -p "$PP_SRCDIR/Soft/bin/lib"
+    find "$PP_SRCDIR/Soft/src/lib/" -mindepth 1 -maxdepth 1 -type d \
+        -not -name "alglib" -exec cp -r {} "$PP_SRCDIR/Soft/bin/lib" \;
 }
 
 function build() {

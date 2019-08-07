@@ -1,7 +1,11 @@
-
-#!/usr/bin/env xdg-open
 [Desktop Entry]
+Version=1.0
 Type=Application
-Name=PolSARPro
+Name=PolSARPro_v6.0_Biomass_Edition"
+Comment=
 Exec=/usr/bin/polsarpro
+Icon=/opt/polsarpro/Tmp/PolSARproBio.ico
+Path=/opt/polsarpro
+Terminal=false
+StartupNotify=false
 Categories=Application;Geography;
