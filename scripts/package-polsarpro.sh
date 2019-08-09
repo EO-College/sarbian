@@ -63,7 +63,7 @@ function install_builddeps() {
     echo ">>> Installing prerequisites..."
     sleep 0.1
     sudo apt update
-    sudo apt install --assume-yes curl unzip fakeroot
+    sudo apt install --assume-yes curl fakeroot freeglut3-dev libfreeimage-dev libglew-dev unzip
 }
 
 function retrieve_source() {
@@ -110,6 +110,57 @@ function prepare() {
     mkdir -p "$PP_SRCDIR/Soft/bin/lib"
     find "$PP_SRCDIR/Soft/src/lib/" -mindepth 1 -maxdepth 1 -type d \
         -not -name "alglib" -exec cp -r {} "$PP_SRCDIR/Soft/bin/lib" \;
+
+    # copy our own Makefiles into the src directories
+    cp -v "$PP_PKG_FILES/"{Makefile,Compile.make} "$PP_SRCDIR/Soft/src"
+
+    local -ar subdirs=(
+        basis_change
+        bmp_process
+        calculator
+        calibration
+        data_convert
+        data_import
+        data_process_dual
+        data_process_mult
+        data_process_sngl
+        speckle_filter
+        tools
+    )
+    for subdir in "${subdirs[@]}"; do
+        cp -v "$PP_PKG_FILES/SubMakefile" "$PP_SRCDIR/Soft/src/$subdir/Makefile"
+    done
+
+    local -ar subdirs2=(
+        PolSARap
+        PolSARproSIM
+        PolSARproSIMgr
+        PolSARproSIMsv
+        SVM
+    )
+
+    for subdir2 in "${subdirs2[@]}"; do
+        cp -v "$PP_PKG_FILES/${subdir2}_Makefile" "$PP_SRCDIR/Soft/src/${subdir2}/Makefile"
+    done
+
+    for w in psp satim; do
+        cp -v "$PP_PKG_FILES/map_algebra_${w}_Makefile" \
+            "$PP_SRCDIR/Soft/src/map_algebra_${w}/linux/map_algebra/Makefile"
+    done
+}
+
+function build2() {
+    echo ">>> Building PolSARPro 6.0.1..."
+    (cd "$PP_SRCDIR/Soft/src" && make clean && make -j)
+    cp -v "$PP_SRCDIR/Soft/bin/map_algebra/linux/map_algebra_psp.exe" "$PP_SRCDIR/Soft/bin/map_algebra/linux/map_algebra_gimp.exe"
+
+    # fix permissions
+    find "$PP_SRCDIR/Soft" -type d -o -name '*.exe' -exec chmod 755 {} +
+    find "$PP_SRCDIR/Soft" -type f ! -name '*.exe' -exec chmod 644 {} +
+
+    # configure software
+    echo "/usr/bin/gimp" > "$PP_SRCDIR/Config/GimpUnix.txt"
+    echo "/usr/bin/convert" > "$PP_SRCDIR/Config/ImageMagickUnix.txt"
 }
 
 function build() {

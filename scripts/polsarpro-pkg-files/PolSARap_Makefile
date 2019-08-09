@@ -1,0 +1,49 @@
+ALGLIB = $(LIB_DIR)/alglib
+ALGLIB_SOURCE_NAMES = \
+	ap \
+	alglibinternal \
+	linalg \
+	alglibmisc \
+	solvers \
+	optimization
+ALGLIB_SOURCES = $(addsuffix .cpp,$(addprefix $(ALGLIB)/,$(ALGLIB_SOURCE_NAMES)))
+	
+
+SUBDIR = $(notdir $(abspath $(CURDIR)))
+
+SOURCES_NAMES = \
+	Cryosphere_Inversion \
+	Agriculture_Decomposition \
+	Agriculture_Inversion_Dihedral \
+	Agriculture_Inversion_Surface \
+	Forest_Height_Estimation_Dual_Baseline \
+	Ocean \
+	Urban
+
+SOURCES = $(addsuffix .c,$(addprefix $(SUBDIR)_,$(SOURCES_NAMES)))
+OBJECTS = $(SOURCES:.c=.o)
+EXECUTABLE = $(SOURCES:.c=.exe)
+
+define mk-objects =
+@echo $<
+@echo $@
+$(CC) -c $< $(CCFLAGS) $(LDFLAGS) -o $@
+endef
+
+define mk-executables =
+mkdir -p "$(BIN)/$(SUBDIR)"
+$(CC) $(CCFLAGS) $< $(LIB_O) $(LDFLAGS) -o $(BIN)/$(SUBDIR)/$@
+endef
+
+all: $(EXECUTABLE) $(SUBDIR)_Cryosphere_Decomposition.exe
+
+.SECONDARY: $(OBJECTS)
+
+%.exe : %.o
+	$(mk-executables)
+
+%.o : %.c
+	$(mk-objects)
+
+$(SUBDIR)_Cryosphere_Decomposition.exe: $(SUBDIR)_Cryosphere_Decomposition.c
+	$(CXX) -I $(ALGLIB) $(ALGLIB_SOURCES) $< -o $(BIN)/$(SUBDIR)/$@ $(LDFLAGS)

@@ -1,0 +1,27 @@
+CCFLAGS = -w
+LDFLAGS = -lGLEW -lGL -lGLU -lglut -lfreeimage -lm -fopenmp -pthread
+SOURCES = $(wildcard *.c)
+OBJECTS = $(SOURCES:.c=.o)
+EXECUTABLE = map_algebra_psp.exe
+
+# Debug build flags
+ifeq ($(dbg),1)
+CCFLAGS += -g -G
+TARGET := debug
+else
+TARGET := map_algebra
+endif
+
+all: $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	- mkdir $(BIN)/$(TARGET)/linux
+	- mkdir $(BIN)/$(TARGET)/linux/shaders
+	- mkdir $(BIN)/$(TARGET)/linux/colormaps
+	$(CXX) $(CCFLAGS) $(OBJECTS) $(LDFLAGS) -o $@
+	mv $@ $(BIN)/$(TARGET)/linux/	
+	cp shaders/* $(BIN)/$(TARGET)/linux/shaders/
+	cp colormaps/* $(BIN)/$(TARGET)/linux/colormaps/
+
+%.o : %.c
+	$(CXX) -c $< $(CCFLAGS) $(LDFLAGS) -o $@

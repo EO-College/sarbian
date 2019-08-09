@@ -1,0 +1,32 @@
+SUBDIR = $(notdir $(abspath $(CURDIR)))
+CXXFLAGS = -Wall -Wconversion -O3
+
+CXX_EXECUTABLES =\
+	svm_predict_polsarpro.exe \
+	svm_train_polsarpro.exe \
+	svm_scale_polsarpro.exe
+
+SOURCES =\
+	svm_classifier.c \
+	write_best_cv_results.c \
+	grid_polsarpro.c \
+	svm_confusion_matrix.c
+EXECUTABLES = $(SOURCES:.c=.exe)
+
+all: $(CXX_EXECUTABLES) $(EXECUTABLES)
+.PHONY: all
+
+svm.o : svm.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+svm_predict_polsarpro.exe : svm.o
+	$(CXX) $(CXXFLAGS) svm-predict.c $< -o $(BIN)/$(SUBDIR)/$@ $(LDFLAGS)
+
+svm_train_polsarpro.exe : svm.o
+	$(CXX) $(CXXFLAGS) svm-train.c $< -o $(BIN)/$(SUBDIR)/$@ $(LDFLAGS)
+
+svm_scale_polsarpro.exe : svm.o
+	$(CXX) $(CXXFLAGS) svm-scale.c $< -o $(BIN)/$(SUBDIR)/$@ $(LDFLAGS)
+
+%.exe : %.c
+	$(CC) $(LIB_SOURCE) $< -o $(BIN)/$(SUBDIR)/$@ $(LDFLAGS)

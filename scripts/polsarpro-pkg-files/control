@@ -4,7 +4,7 @@ Architecture: ARCH
 Essential: no
 Section: science
 Priority: optional
-Depends: asf-mapready, bwidget, curl, gimp, gnuplot, hdf5-tools, imagemagick, itcl3, itk3, iwidgets4, libtk-img, p7zip-full, tcl, tk
+Depends: asf-mapready, bwidget, curl, freeglut3, gimp, gnuplot, hdf5-tools, imagemagick, itcl3, itk3, iwidgets4, libfreeimage3, libglew2.1, libtk-img, p7zip-full, tcl, tk
 Maintainer: EO-College Team
 Installed-Size: INSTALLED_SIZE
 Description: Tools for processing polarimetric satellite data.

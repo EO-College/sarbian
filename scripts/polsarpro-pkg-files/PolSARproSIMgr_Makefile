@@ -1,0 +1,68 @@
+CC = gcc
+CXX = g++
+CCFLAGS = -w -Wall
+LDFLAGS = -lm -fopenmp -pthread
+LIB_DIR = $(abspath ../lib)
+LIB_SOURCE = $(LIB_DIR)/PolSARproLib.c
+LIB_O = $(LIB_DIR)/PolSARproLib.o
+BIN = $(abspath ../../bin)
+
+SUBDIR = $(notdir $(abspath $(CURDIR)))
+
+SOURCES =\
+	PolSARproSim.c \
+	Allometrics.c \
+	Attenuation.c \
+	Branch.c \
+	c3Vector.c \
+	c33Matrix.c \
+	Complex.c \
+	Cone.c \
+	Crown.c \
+	Cylinder.c \
+	d3Vector.c \
+	d33Matrix.c \
+	Drawing.c \
+	Facet.c \
+	GraphicIMage.c \
+	GrgCyl.c \
+	Ground.c \
+	InfCyl.c \
+	JLkp.c \
+	Jnz.c \
+	Leaf.c \
+	LightingMaterials.c \
+	MonteCarlo.c \
+	Perspective.c \
+	Plane.c \
+	PolSARproSim_Direct_Ground.c \
+	PolSARproSim_Forest.c \
+	PolSARproSim_Procedures.c \
+	PolSARproSim_Progress.c \
+	PolSARproSim_Short_Vegi.c \
+	Ray.c \
+	RayCrownIntersection.c \
+	Realisation.c \
+	SarIMage.c \
+	Shuffling.c \
+	Sinc.c \
+	soilsurface.c \
+	Spheroid.c \
+	Tree.c \
+	YLkp.c
+OBJECTS = $(SOURCES:.c=.o)
+
+all: PolSARproSim_gr.exe PolSARproSimGR_ImgSize.exe PolSARproSim_FE_Kz.exe
+.PHONY: all
+
+PolSARproSim_gr.exe: $(SOURCES)
+	mkdir -p "$(BIN)/$(SUBDIR)"
+	$(CC) -o $(BIN)/$(SUBDIR)/$@ $(SOURCES) $(LDFLAGS)
+
+PolSARproSimGR_ImgSize.exe: PolSARproSimGR_ImgSize.c
+	mkdir -p "$(BIN)/$(SUBDIR)"
+	$(CC) -o $(BIN)/$(SUBDIR)/$@ $< $(LDFLAGS)
+
+PolSARproSim_FE_Kz.exe: PolSARproSim_FE_Kz.c
+	mkdir -p "$(BIN)/$(SUBDIR)"
+	$(CC) -o $(BIN)/$(SUBDIR)/$@ $(LIB_SOURCE) $< $(LDFLAGS)

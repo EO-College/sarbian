@@ -1,0 +1,2 @@
+SUBDIR = $(notdir $(abspath $(CURDIR)))
+include ../Compile.make
