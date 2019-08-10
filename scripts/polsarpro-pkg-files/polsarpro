@@ -1,3 +1,3 @@
 #!/bin/bash
 
-wish /opt/polsarpro/PolSARpro_v6.0_Biomass_Edition.tcl
+cd /opt/polsarpro && wish PolSARpro_v6.0_Biomass_Edition.tcl

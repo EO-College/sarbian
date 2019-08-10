@@ -53,9 +53,6 @@ declare -r PP_BUILDDIR="$BUILDDIR/${pkgname}"
 declare -r PP_SRCDIR="$PP_BUILDDIR/src/${pkgname}-${pkgver}"
 declare -r PP_PKGDIR="$PP_BUILDDIR/pkg"
 
-[[ -e "$PP_BUILDDIR" ]] && rm -rf "$PP_BUILDDIR"
-mkdir -p "$CACHEDIR" "$PP_SRCDIR" "$PP_PKGDIR"
-
 ###############################################################################
 
 function install_builddeps() {
@@ -88,6 +85,9 @@ function retrieve_source() {
 }
 
 function extract_files() {
+    [[ -e "$PP_BUILDDIR" ]] && rm -rf "$PP_BUILDDIR"
+    mkdir -p "$CACHEDIR" "$PP_SRCDIR" "$PP_PKGDIR"
+
     echo ">>> Extracting source..."
     # extract files
     #tar -xzf "$CACHEDIR/$file" -C "$PP_SRCDIR/.."
@@ -149,24 +149,11 @@ function prepare() {
     done
 }
 
-function build2() {
+function build() {
     echo ">>> Building PolSARPro 6.0.1..."
     (cd "$PP_SRCDIR/Soft/src" && make clean && make -j)
     cp -v "$PP_SRCDIR/Soft/bin/map_algebra/linux/map_algebra_psp.exe" "$PP_SRCDIR/Soft/bin/map_algebra/linux/map_algebra_gimp.exe"
 
-    # fix permissions
-    find "$PP_SRCDIR/Soft" -type d -o -name '*.exe' -exec chmod 755 {} +
-    find "$PP_SRCDIR/Soft" -type f ! -name '*.exe' -exec chmod 644 {} +
-
-    # configure software
-    echo "/usr/bin/gimp" > "$PP_SRCDIR/Config/GimpUnix.txt"
-    echo "/usr/bin/convert" > "$PP_SRCDIR/Config/ImageMagickUnix.txt"
-}
-
-function build() {
-    echo ">>> Running necessary compilation steps..."
-    cp -v "$PP_PKG_FILES/compile-code.sh" "$PP_SRCDIR/Soft"
-    (cd "$PP_SRCDIR/Soft" && ./compile-code.sh && rm ./compile-code.sh)
     # fix permissions
     find "$PP_SRCDIR/Soft" -type d -o -name '*.exe' -exec chmod 755 {} +
     find "$PP_SRCDIR/Soft" -type f ! -name '*.exe' -exec chmod 644 {} +
@@ -183,17 +170,15 @@ function create_package() {
     # and copy polsarpro files into it for now
     cp -r "$PP_SRCDIR"/* "$PP_PKGDIR/opt/${pkgname}/"
     # copy license txt file
-    install -Dm644 "$PP_PKG_FILES/copyright" "$PP_PKGDIR/usr/share/doc/${pkgname}/copyright"
+    install -Dm644 "$PP_SRCDIR/License/PolSARpro_v6.0_Biomass_Edition_LICENSE.txt" "$PP_PKGDIR/usr/share/doc/${pkgname}/copyright"
     # launcher for polsarpro
     install -Dm755 "$PP_PKG_FILES/polsarpro" "$PP_PKGDIR/usr/bin/polsarpro"
-    chmod 755 "$PP_PKGDIR/opt/polsarpro/PolSARpro_v5.0.tcl"
 
     # remove unnecessary files
-    rm -rf "$PP_PKGDIR/opt/${pkgname}/Soft/Compil_PolSARpro_v5_Linux.bat"
+    rm -rf "$PP_PKGDIR/opt/${pkgname}/Soft/src"
+    rm -rf "$PP_PKGDIR/opt/${pkgname}/Soft/Compil_PolSARpro_Biomass_Edition_Linux.sh"
     rm -rf "$PP_PKGDIR/opt/${pkgname}/GUI/Images/Thumbs.db"
-    # we place a text file with the license into the correct directory, so the
-    # pdf is obsolete
-    rm -rf "$PP_PKGDIR/opt/${pkgname}/license.pdf"
+    rm -rf "$PP_PKGDIR/opt/${pkgname}/GUI/Images/GPT/Thumbs.db"
 
     mkdir -p "$PP_PKGDIR/DEBIAN"
     # global configs for etc
@@ -230,10 +215,11 @@ if [[ "$INFAKEROOT" ]]; then
     exit 0
 else
     install_builddeps
-    retrieve_source
+    #retrieve_source
     extract_files
+    prepare
     build
-    fakeroot -- $0 -F
+    fakeroot -- "$0" -F
 fi
 
 echo "Finished building Debian package for $pkgname."
