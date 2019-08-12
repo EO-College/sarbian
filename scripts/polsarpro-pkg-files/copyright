@@ -1,19 +1,18 @@
-                            LICENSE
-
-PolSARpro v5.0 (Polarimetric SAR Data Processing and Educational Tool
-(v5.0) is developed under contract to ESA-ESRIN.
-
-PolSARpro v5.0 is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 (1991) of the License,
-or any later version.
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+PolSARpro v6.0 (Biomass Edition) (Polarimetric SAR Data Processing and
+Educational Tool) is continued to be developed under contract to ESA-ESRIN
+by I.E.T.R (UMR CNRS 6164) at the University of Rennes 1, Rennes, France.
+ 
+PolSARpro v6.0 (Biomass Edition) is free software; you can redistribute 
+it and/or modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 (1991) of the
+License, or any later version.
+This program is distributed in the hope that it will be useful, but 
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. 
 
 See the GNU General Public License for more details.
 
-------------------------------------------------------------------------
+=========================================================================
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
@@ -294,4 +293,9 @@ YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER
 PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
-                     END OF TERMS AND CONDITIONS
+
+In addition, as a special exception, the copyright holders of PolSARpro-Biomass
+Edition v1.0.0 give you permission to combine PolSARpro-Biomass Edition v1.0.0
+with free software programs and with code included in the standard release of 
+Gnuplot 4.6.6 under the Gnuplot License or modified versions of such code,
+with unchanged license .

@@ -43,10 +43,9 @@ function checkFile {
 declare -r pkgname="polsarpro"
 declare -r pkgver="6.0.1"
 declare -r arch="amd64"
-#declare -r file="${pkgname}-${pkgver}.tar.gz"
-declare -r file="PolSARpro_v6.0_Biomass_Edition_Package_Linux.zip"
+declare -r file="${pkgname}-${pkgver}.tar.gz"
 declare -r url="https://github.com/EO-College/${pkgname}/archive/v${pkgver}.tar.gz"
-declare -r sha256sum="ea6b63e77db30b657a8425ded40828c7a75ebee6610f5c08bc3cb79ecbaa10c1"
+declare -r sha256sum="315230079a28940fed67171a38b636ee214c7d945887eabc6bf5af2faac1123b"
 
 declare -r PP_PKG_FILES="$SCRIPTDIR/polsarpro-pkg-files"
 declare -r PP_BUILDDIR="$BUILDDIR/${pkgname}"
@@ -56,11 +55,11 @@ declare -r PP_PKGDIR="$PP_BUILDDIR/pkg"
 ###############################################################################
 
 function install_builddeps() {
-    # install curl, unrar and fakeroot as build deps
+    # install curl, fakeroot and some libraries as builddeps
     echo ">>> Installing prerequisites..."
     sleep 0.1
     sudo apt update
-    sudo apt install --assume-yes curl fakeroot freeglut3-dev libfreeimage-dev libglew-dev unzip
+    sudo apt install --assume-yes curl fakeroot freeglut3-dev libfreeimage-dev libglew-dev
 }
 
 function retrieve_source() {
@@ -90,8 +89,7 @@ function extract_files() {
 
     echo ">>> Extracting source..."
     # extract files
-    #tar -xzf "$CACHEDIR/$file" -C "$PP_SRCDIR/.."
-    unzip -q "$CACHEDIR/$file" -d "$PP_SRCDIR"
+    tar -xzf "$CACHEDIR/$file" -C "$PP_SRCDIR/.."
 }
 
 function prepare() {
