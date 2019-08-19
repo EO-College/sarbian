@@ -213,7 +213,7 @@ if [[ "$INFAKEROOT" ]]; then
     exit 0
 else
     install_builddeps
-    #retrieve_source
+    retrieve_source
     extract_files
     prepare
     build
