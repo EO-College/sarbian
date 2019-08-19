@@ -18,6 +18,7 @@ lb config noauto \
     --clean \
     --ignore-system-defaults \
     --mode debian \
+    --distribution buster \
     --debian-installer live \
     --linux-packages "linux-image linux-headers" \
     --source "${_SOURCE}" \
