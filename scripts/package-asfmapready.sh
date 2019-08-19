@@ -23,7 +23,8 @@ set -e
 
 ##
 # define important directories
-declare -r SCRIPTDIR="$(readlink -f "$(dirname "$0")")"
+SCRIPTDIR="$(dirname "$(readlink -f "$0")")"
+readonly SCRIPTDIR
 declare -r CACHEDIR="${SCRIPTDIR}/cache"
 declare -r BUILDDIR="${SCRIPTDIR}/build"
 declare -r PKGDIR="${SCRIPTDIR}/pkg"
@@ -33,13 +34,13 @@ declare -r PKGDIR="${SCRIPTDIR}/pkg"
 declare -r pkgname="asf-mapready"
 declare -r _pkgname="ASF_MapReady"
 # make sure to use the same version number as used in debian/changelog here!
-declare -r pkgver="0~20180618"
+declare -r pkgver="0~20190630"
 declare -r pkgrel="1"
 declare -r arch="amd64"
 # we cannot just download the tarballs from our tags, we need the whole .git
 # directory for creating the changelog
 declare -r repourl="https://github.com/EO-College/${_pkgname}"
-declare -r vcstag="sarbian-18.08"
+declare -r vcstag="sarbian-19.08"
 
 declare -r makedepends=(\
     "curl" \

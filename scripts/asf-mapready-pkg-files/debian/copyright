@@ -3,11 +3,11 @@ Upstream-Name: ASF MapReady
 Source: https://github.com/asfadmin/ASF_MapReady
 
 Files: *
-Copyright: 1987-2018 US Government
+Copyright: 1987-2019 US Government
 License: GPL-3.0
 
 Files: debian/*
-Copyright: 2018 SARbian Team
+Copyright: 2018-2019 SARbian Team
 License: GPL-3.0+
 
 License: GPL-3.0

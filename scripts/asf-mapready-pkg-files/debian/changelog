@@ -1,3 +1,14 @@
+asf-mapready (0~20190630-1) unstable; urgency=medium
+
+  * debian/control
+    - updated builddep libproj12 to libproj13
+  * debian/copyright
+    - bumped year in copyright file
+  * debian/patches/*
+    - dropped all patches as upstream fixed the issues
+
+ -- SARbian Team <sarbian@uni-jena.de>  Mon, 19 Aug 2019 16:30:10 +0200
+
 asf-mapready (0~20180618-1) unstable; urgency=medium
 
   * Initial release
