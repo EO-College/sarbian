@@ -18,8 +18,8 @@ gfortran
 libcairo2-dev
 libxt-dev
 
-libgeos-3.5.1
-libproj12
+libgeos-3.7.1
+libproj13
 libgdal-dev
 gdal-bin
 dans-gdal-scripts
