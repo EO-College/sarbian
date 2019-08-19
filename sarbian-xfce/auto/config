@@ -28,7 +28,7 @@ lb config noauto \
     --updates true \
     --iso-application "SARbian is a remote sensing ready operating system" \
     --iso-publisher "SARedu team at www.eo-college.org" \
-    --iso-volume "SARbian 2018.08" \
+    --iso-volume "SARbian 2019.08" \
     --linux-flavours "${_FLAVOURS}" \
     --checksums "sha512" \
     --bootappend-live "boot=live components username=saredu" \
