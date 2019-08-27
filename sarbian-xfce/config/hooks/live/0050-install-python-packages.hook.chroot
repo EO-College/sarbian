@@ -15,6 +15,6 @@ for pkg in numpy scipy pyroSAR spatialist; do
 done
 
 #requirements for pyrat + pyrat
-for pkg in cython h5py lxml mako matplotlib numexpr pillow readline scikit-image git+https://github.com/birgander2/pyrat; do
-    pip3 install "$pkg"
-done
+#for pkg in cython h5py lxml mako matplotlib numexpr pillow readline scikit-image git+https://github.com/birgander2/pyrat; do
+#    pip3 install "$pkg"
+#done
