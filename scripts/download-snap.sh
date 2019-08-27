@@ -23,10 +23,9 @@ set -e
 
 ##
 # define important directories
-declare -r SCRIPTDIR="$(readlink -f "$(dirname "$0")")"
+SCRIPTDIR="$(dirname "$(readlink -f "$0")")"
+readonly SCRIPTDIR
 declare -r CACHEDIR="${SCRIPTDIR}/cache"
-declare -r BUILDDIR="${SCRIPTDIR}/build"
-declare -r PKGDIR="${SCRIPTDIR}/pkg"
 
 ##
 # Simple wrapper around sha256sum. Returns 0 if sha256 and file match
@@ -59,13 +58,13 @@ sudo apt update && sudo apt install --assume-yes curl
 # download installer
 echo ">>> Downloading installer, if required"
 mkdir -p "$CACHEDIR"
-if [[ -e "$CACHEDIR/$file" ]] && $(checkFile "$CACHEDIR/$file" "$sha256sum"); then
+if [[ -e "$CACHEDIR/$file" ]] && checkFile "$CACHEDIR/$file" "$sha256sum"; then
     echo ">>> No download necessary, using cached version."
 else
     curl -L "$url" -o "$CACHEDIR/$file"
 
     echo -n ">>> Verifying checksum... "
-    if ! $(checkFile "$CACHEDIR/$file" "$sha256sum"); then
+    if ! checkFile "$CACHEDIR/$file" "$sha256sum"; then
         echo "FAIL"
         echo ">>> Downloaded SNAP installer '$CACHEDIR/$file' does not match sha256sum '$sha256sum'." >> /dev/stderr
         echo ">>> Aborting." >> /dev/stderr
@@ -80,13 +79,13 @@ fi
 ###############################################################################
 # download SNAP icon
 echo ">>> Downloading SNAP icon, if required"
-if [[ -e "$CACHEDIR/$icon_file" ]] && $(checkFile "$CACHEDIR/$icon_file" "$icon_sha256sum"); then
+if [[ -e "$CACHEDIR/$icon_file" ]] && checkFile "$CACHEDIR/$icon_file" "$icon_sha256sum"; then
     echo ">>> No download necessary, using cached version."
 else
     curl -L "$icon_url" -o "$CACHEDIR/$icon_file"
 
     echo -n ">>> Verifying checksum... "
-    if ! $(checkFile "$CACHEDIR/$icon_file" "$icon_sha256sum"); then
+    if ! checkFile "$CACHEDIR/$icon_file" "$icon_sha256sum"; then
         echo "FAIL"
         echo ">>> Downloaded SNAP icon '$CACHEDIR/$icon_file' does not match sha256sum '$icon_sha256sum'." >> /dev/stderr
         echo ">>> Aborting." >> /dev/stderr
@@ -99,7 +98,7 @@ fi
 
 ###############################################################################
 # copy files into live build environment
-declare -r INCLUDES_CHROOT="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/includes.chroot/usr/local"
+declare -r INCLUDES_CHROOT="$SCRIPTDIR/../sarbian-xfce/config/includes.chroot/usr/local"
 mkdir -p "$INCLUDES_CHROOT/bin" "$INCLUDES_CHROOT/share"
 echo ">>> Copying SNAP installer and icon into '$INCLUDES_CHROOT'..."
 cp -v "$CACHEDIR/$file" "$INCLUDES_CHROOT/bin"
