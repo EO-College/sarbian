@@ -10,7 +10,7 @@ if [ "$architecture" = "amd64" ]; then
     ##
     # install SNAP
     echo ">>> Running SNAP installer..."
-    /usr/local/bin/esa-snap_sentinel_unix_6_0.sh -q -dir /opt/snap
+    /usr/local/bin/esa-snap_sentinel_unix_7_0.sh -q -dir /opt/snap
     ##
     # update SNAP
     echo ">>> Launching SNAP and update modules..."

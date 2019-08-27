@@ -41,10 +41,10 @@ function checkFile {
 # define snap version here
 # make necessary adjustments when using a newer versions
 declare -r appname="esa-snap"
-declare -r appver="6.0"
+declare -r appver="7.0"
 declare -r file="${appname}_sentinel_unix_${appver/./_}.sh"
-declare -r url="http://step.esa.int/downloads/${appver}/installers/${file}"
-declare -r sha256sum="3e92651f68bd4ea2fd523bd1b31ed8c31347eba73dd4d25fa4791ea2f748ef18"
+declare -r url="https://step.esa.int/downloads/${appver}/installers/${file}"
+declare -r sha256sum="5f06c3807289ed4eb4ed1f4aaf2c5b18b5ecc2e2cd512383c62c0e060e75153b"
 
 # SNAP installer currently corrupts the icon for SNAP, so we manually replace it
 declare -r icon_file="SNAP_Icon_48.png"
