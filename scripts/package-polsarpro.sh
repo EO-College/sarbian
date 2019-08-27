@@ -99,12 +99,21 @@ function prepare() {
     # delete object file from src directory
     rm -rf "$PP_SRCDIR/Soft/src/lib/PolSARproLib.o"
 
-    # copy the included dependecies into the bin directory
-    # TODO: this must not be part of the final package
-    # h5dump from hdf5-tools, patch ./PolSARpro_v6.0_Biomass_Edition.tcl
-    # 7za from p7zip-full, patch ./GUI/data_import/SENTINEL1_Input_Zip_File.tcl
-    # curl from curl, patch ./PolSARpro_v6.0_Biomass_Edition.tcl
+    # PolSARpro comes with executables for h5dump, 7za, curl and gnuplot
+    # these must not be included in the final package as they are provided by
+    # their Debian packages.
     # gnuplot from gnuplot, patch seems not necessary, uses /usr/bin/gnuplot on Linux/Unix
+    # h5dump from hdf5-tools, patch ./PolSARpro_v6.0_Biomass_Edition.tcl
+    patch -d "$PP_SRCDIR" -Np1 -i "$PP_PKG_FILES/patches/0001-use-system-provided-h5dump.patch"
+    # 7za from p7zip-full, patch ./GUI/data_import/SENTINEL1_Input_Zip_File.tcl
+    patch -d "$PP_SRCDIR" -Np1 -i "$PP_PKG_FILES/patches/0002-use-system-provided-7za.patch"
+    # curl from curl, patch ./PolSARpro_v6.0_Biomass_Edition.tcl
+    patch -d "$PP_SRCDIR" -Np1 -i "$PP_PKG_FILES/patches/0003-use-system-provided-curl.patch"
+
+    # remove the external dependencies shipping with PolSARpro
+    rm -rf "$PP_SRCDIR/Soft/lib/"{curl,hdf5,unzip,wgnuplot}
+
+    # copy the remaining files into the bin directory
     mkdir -p "$PP_SRCDIR/Soft/bin/lib"
     find "$PP_SRCDIR/Soft/src/lib/" -mindepth 1 -maxdepth 1 -type d \
         -not -name "alglib" -exec cp -r {} "$PP_SRCDIR/Soft/bin/lib" \;

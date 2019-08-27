@@ -1,0 +1,13 @@
+diff --git a/PolSARpro_v6.0_Biomass_Edition.tcl b/PolSARpro_v6.0_Biomass_Edition.tcl
+index d7ee68a..d06ea98 100644
+--- a/PolSARpro_v6.0_Biomass_Edition.tcl
++++ b/PolSARpro_v6.0_Biomass_Edition.tcl
+@@ -14060,7 +14060,7 @@ if {$InternetConnectResult == 0} {
+     if {$PlatFormPSP == "windows"} { 
+         set cURLexe "Soft/bin/lib/curl/curl_win64.exe"
+         } else {
+-        set cURLexe "Soft/bin/lib/curl/curl_linux.exe"
++        set cURLexe "curl"
+         }
+     set ProgressLine "0"
+     update

@@ -1,0 +1,22 @@
+diff --git a/GUI/data_import/SENTINEL1_Input_Zip_File.tcl b/GUI/data_import/SENTINEL1_Input_Zip_File.tcl
+index 760fe29..b27d7ae 100644
+--- a/GUI/data_import/SENTINEL1_Input_Zip_File.tcl
++++ b/GUI/data_import/SENTINEL1_Input_Zip_File.tcl
+@@ -838,7 +838,7 @@ if {$FileName == ""} {
+     if {$PlatForm == "windows"} {
+         set UnzipFunction "Soft/bin/lib/unzip/7zG_win64.exe"
+         } else {
+-        set UnzipFunction "Soft/bin/lib/unzip/7za_linux.exe"
++        set UnzipFunction "7za"
+         }
+     TextEditorRunTrace "Process The Function $UnzipFunction" "k"
+     TextEditorRunTrace "Arguments: e \x22$SENTINEL1ZipFileInput\x22 -o$TMPDir *.html -r -y" "k"
+@@ -1163,7 +1163,7 @@ set SENTINEL1FileProductXml "$SENTINEL1ProductFile($SwathNum).xml"
+ if {$PlatForm == "windows"} {
+     set UnzipFunction "Soft/bin/lib/unzip/7zG_win64.exe"
+     } else {
+-    set UnzipFunction "Soft/bin/lib/unzip/7za_linux.exe"
++    set UnzipFunction "7za"
+     }
+ TextEditorRunTrace "Process The Function $UnzipFunction" "k"
+ TextEditorRunTrace "Arguments: e \x22$SENTINEL1ZipFileInput\x22 -o$TMPDir $SENTINEL1FileProductXml -r -y" "k"

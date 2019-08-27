@@ -1,0 +1,61 @@
+diff --git a/PolSARpro_v6.0_Biomass_Edition.tcl b/PolSARpro_v6.0_Biomass_Edition.tcl
+index d7ee68a..7334e0f 100644
+--- a/PolSARpro_v6.0_Biomass_Edition.tcl
++++ b/PolSARpro_v6.0_Biomass_Edition.tcl
+@@ -12872,8 +12872,8 @@ if {$CSKDumpArg == "A"} {
+     DeleteFile $TMPCSKTmp
+     DeleteFile $TMPCSKConfig
+     set f [open $TMPCSKBatchRun w]
+-    set CSKDumpExe "$PSPDir/Soft/bin/lib/hdf5/"
+     if {$PlatForm == "windows"} {
++        set CSKDumpExe "$PSPDir/Soft/bin/lib/hdf5/"
+         append CSKDumpExe "h5dump_win32.exe"
+         set CSKDumpCmd ""
+         set LengthCSKDumpExe [string length $CSKDumpExe]
+@@ -12898,7 +12898,7 @@ if {$CSKDumpArg == "A"} {
+             }
+         append CSKDumpCmd "\x22"
+         } else {
+-        append CSKDumpExe "h5dump_linux.exe"
++        set CSKDumpExe "h5dump"
+         set CSKDumpCmd "$CSKDumpExe -A \x22$TMPCSKFileInput\x22 > \x22$TMPCSKTmp\x22"
+         }
+ 
+@@ -12913,8 +12913,8 @@ if {$CSKDumpArg == "A"} {
+ if {$CSKDumpArg == "d1"} {
+     DeleteFile $TMPCSKTmp
+     set f [open $TMPCSKBatchRun w]
+-    set CSKDumpExe "$PSPDir/Soft/bin/lib/hdf5/"
+     if {$PlatForm == "windows"} {
++        set CSKDumpExe "$PSPDir/Soft/bin/lib/hdf5/"
+         append CSKDumpExe "h5dump_win32.exe"
+         set CSKDumpCmd ""
+         set LengthCSKDumpExe [string length $CSKDumpExe]
+@@ -12946,7 +12946,7 @@ if {$CSKDumpArg == "d1"} {
+             }
+         append CSKDumpCmd "\x22"
+         } else {
+-        append CSKDumpExe "h5dump_linux.exe"
++        set CSKDumpExe "h5dump"
+         set CSKDumpCmd "$CSKDumpExe -d \x22/S01/SBI\x22 -b LE -o \x22TMPCSKBinary1\x22 \x22$TMPCSKFileInput\x22 > \x22$TMPCSKTmp\x22"
+         }
+ 
+@@ -12961,8 +12961,8 @@ if {$CSKDumpArg == "d1"} {
+ if {$CSKDumpArg == "d2"} {
+     DeleteFile $TMPCSKTmp
+     set f [open $TMPCSKBatchRun w]
+-    set CSKDumpExe "$PSPDir/Soft/bin/lib/hdf5/"
+     if {$PlatForm == "windows"} {
++        set CSKDumpExe "$PSPDir/Soft/bin/lib/hdf5/"
+         append CSKDumpExe "h5dump_win32.exe"
+         set CSKDumpCmd ""
+         set LengthCSKDumpExe [string length $CSKDumpExe]
+@@ -12994,7 +12994,7 @@ if {$CSKDumpArg == "d2"} {
+             }
+         append CSKDumpCmd "\x22"
+         } else {
+-        append CSKDumpExe "h5dump_linux.exe"
++        set CSKDumpExe "h5dump"
+         set CSKDumpCmd "$CSKDumpExe -d \x22/S02/SBI\x22 -b LE -o \x22TMPCSKBinary2\x22 \x22$TMPCSKFileInput\x22 > \x22$TMPCSKTmp\x22"
+         }
+ 
