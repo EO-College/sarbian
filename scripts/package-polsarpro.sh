@@ -119,7 +119,7 @@ function prepare() {
         -not -name "alglib" -exec cp -r {} "$PP_SRCDIR/Soft/bin/lib" \;
 
     # copy our own Makefiles into the src directories
-    cp -v "$PP_PKG_FILES/"{Makefile,Compile.make} "$PP_SRCDIR/Soft/src"
+    cp -v "$PP_PKG_FILES/makefiles/"{Makefile,Compile.make} "$PP_SRCDIR/Soft/src"
 
     local -ar subdirs=(
         basis_change
@@ -135,7 +135,7 @@ function prepare() {
         tools
     )
     for subdir in "${subdirs[@]}"; do
-        cp -v "$PP_PKG_FILES/SubMakefile" "$PP_SRCDIR/Soft/src/$subdir/Makefile"
+        cp -v "$PP_PKG_FILES/makefiles/SubMakefile" "$PP_SRCDIR/Soft/src/$subdir/Makefile"
     done
 
     local -ar subdirs2=(
@@ -147,11 +147,11 @@ function prepare() {
     )
 
     for subdir2 in "${subdirs2[@]}"; do
-        cp -v "$PP_PKG_FILES/${subdir2}_Makefile" "$PP_SRCDIR/Soft/src/${subdir2}/Makefile"
+        cp -v "$PP_PKG_FILES/makefiles/${subdir2}_Makefile" "$PP_SRCDIR/Soft/src/${subdir2}/Makefile"
     done
 
     for w in psp satim; do
-        cp -v "$PP_PKG_FILES/map_algebra_${w}_Makefile" \
+        cp -v "$PP_PKG_FILES/makefiles/map_algebra_${w}_Makefile" \
             "$PP_SRCDIR/Soft/src/map_algebra_${w}/linux/map_algebra/Makefile"
     done
 }
