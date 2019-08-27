@@ -25,5 +25,5 @@ declare -ar rpkgs=(
 )
 
 for pkg in "${rpkgs[@]}"; do
-    R -e "install.packages('$pkg', dependencies=TRUE, repos='$MIRROR')"
+    MAKE='make -j' R -e "install.packages('$pkg', dependencies=TRUE, repos='$MIRROR')"
 done
