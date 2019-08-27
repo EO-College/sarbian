@@ -23,9 +23,8 @@ set -e
 
 ##
 # define important directories
-declare -r SCRIPTDIR="$(readlink -f "$(dirname "$0")")"
-declare -r CACHEDIR="${SCRIPTDIR}/cache"
-declare -r BUILDDIR="${SCRIPTDIR}/build"
+SCRIPTDIR="$(dirname "$(readlink -f "$0")")"
+readonly SCRIPTDIR
 declare -r PKGDIR="${SCRIPTDIR}/pkg"
 
 ##
@@ -58,13 +57,13 @@ function install_builddeps() {
 function retrieve_source() {
     # download package
     echo ">>> Downloading rstudio package, if required"
-    if [[ -e "$PKGDIR/$debfile" ]] && $(checkFileMd5 "$PKGDIR/$debfile" "$md5sum"); then
+    if [[ -e "$PKGDIR/$debfile" ]] && checkFileMd5 "$PKGDIR/$debfile" "$md5sum"; then
         echo ">>> No download necessary, using cached version."
     else
         curl -L "$url" -o "$PKGDIR/$debfile"
 
         echo -n ">>> Verifying checksum... "
-        if ! $(checkFileMd5 "$PKGDIR/$debfile" "$md5sum"); then
+        if ! checkFileMd5 "$PKGDIR/$debfile" "$md5sum"; then
             echo "FAIL"
             echo ">>> Downloaded rstudio package '$PKGDIR/$debfile' does not match md5sum '$md5sum'." >> /dev/stderr
             echo ">>> Aborting." >> /dev/stderr
