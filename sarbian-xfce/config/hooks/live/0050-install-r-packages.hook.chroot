@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Hook to install R packages
 
@@ -6,6 +6,24 @@ set -e
 
 MIRROR="https://cran.rstudio.com"
 
-for pkg in abind jpeg mapproj raster rgdal rgeos shiny sp; do
+declare -ar rpkgs=(
+    abind
+    cowplot
+    dplyr
+    ggplot2
+    jpeg
+    mapproj
+    openair
+    raster
+    readxl
+    reshape2
+    rgdal
+    rgeos
+    scales
+    shiny
+    sp
+)
+
+for pkg in "${rpkgs[@]}"; do
     R -e "install.packages('$pkg', dependencies=TRUE, repos='$MIRROR')"
 done

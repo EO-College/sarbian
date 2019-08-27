@@ -17,10 +17,12 @@ r-base
 gfortran
 libcairo2-dev
 libxt-dev
+libgdal-dev
+macutils
+
 
 libgeos-3.7.1
 libproj13
-libgdal-dev
 gdal-bin
 dans-gdal-scripts
 python-gdal
