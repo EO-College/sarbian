@@ -24,7 +24,8 @@
 # abort on error
 set -e
 
-declare -r SCRIPTDIR="$(readlink -f "$(dirname "$0")")"
+SCRIPTDIR="$(dirname "$(readlink -f "$0")")"
+readonly SCRIPTDIR
 if [[ -z "$SCRIPTDIR" ]]; then
     echo "Fatal Error: cannot determine the absolute path to '$0'." >> /dev/stderr
     exit 1
@@ -45,11 +46,11 @@ rm -rf "$PKGDIR"
 
 ##
 # remove files our build scripts placed in the image build tree
-declare -r PKGCHROOT="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/packages.chroot"
-declare -r INCLUDESCHROOT="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/includes.chroot"
+declare -r PKGCHROOT="$SCRIPTDIR/../sarbian-xfce/config/packages.chroot"
+declare -r INCLUDESCHROOT="$SCRIPTDIR/../sarbian-xfce/config/includes.chroot"
 
 echo ">>> Emptying packages.chroot..."
-rm -rf "$PKGCHROOT"/*
+rm -rf "${PKGCHROOT:?}"/*
 echo ">>> Removing files placed by build scripts from includes.chroot..."
 rm -rf "$INCLUDESCHROOT/usr/local/bin/"
 rm -rf "$INCLUDESCHROOT/usr/local/share/SNAP_Icon_48.png"

@@ -21,17 +21,12 @@
 # abort on error
 set -e
 
-declare -r SCRIPTDIR="$(readlink -f "$(dirname "$0")")"
+SCRIPTDIR="$(dirname "$(readlink -f "$0")")"
+readonly SCRIPTDIR
 if [[ -z "$SCRIPTDIR" ]]; then
     echo "Fatal Error: cannot determine the absolute path to '$0'." >> /dev/stderr
     exit 1
 fi
-
-##
-# define important directories
-declare -r CACHEDIR="${SCRIPTDIR}/cache"
-declare -r BUILDDIR="${SCRIPTDIR}/build"
-declare -r PKGDIR="${SCRIPTDIR}/pkg"
 
 ##
 # run all scripts that create package files
@@ -53,7 +48,7 @@ echo ">>> Packages have been successfully built/downloaded."
 
 ##
 # copy package files into image build tree
-declare -r PKGLISTS="$(readlink -f "$SCRIPTDIR/..")/sarbian-xfce/config/packages.chroot/"
+declare -r PKGLISTS="$SCRIPTDIR/sarbian-xfce/config/packages.chroot/"
 mkdir -p "$PKGLISTS"
 echo ">>> Copying packages into '$PKGLISTS'..."
 cp -v "$SCRIPTDIR/pkg/"*.deb "$PKGLISTS"
