@@ -30,20 +30,34 @@ fi
 
 ##
 # define important directories
-declare -r SCRIPTDIR="$(readlink -f "$(dirname "$0")")"
+SCRIPTDIR="$(dirname "$(readlink -f "$0")")"
+readonly SCRIPTDIR
+declare -r BUILDDIR="$SCRIPTDIR/../sarbian-xfce"
 
 ##
 # install live-build scripts
+echo "[SARBIAN-BUILD] Installing live-build..."
 apt update
 apt install --assume-yes live-build
 
 ##
 # run cleanup and collect-packages (not as root!)
-sudo -u $SUDO_USER "$SCRIPTDIR/cleanup.sh"
-sudo -u $SUDO_USER "$SCRIPTDIR/collect-packages.sh"
+echo "[SARBIAN-BUILD] Cleaning directories for package builds..."
+sudo -u "$SUDO_USER" "$SCRIPTDIR/cleanup.sh"
+echo "[SARBIAN-BUILD] Building packages..."
+sudo -u "$SUDO_USER" "$SCRIPTDIR/collect-packages.sh"
 
 ##
 # change into live image build tree, clean and build
-cd "$SCRIPTDIR/../sarbian-xfce/"
+echo "[SARBIAN-BUILD] Cleaning build directory..."
+cd "$BUILDDIR"
 lb clean
+echo "[SARBIAN-BUILD] Building SARbian ISO image..."
 lb build
+
+echo "[SARBIAN-BUILD] Calculating checksums..."
+for chksum in sha256sum sha384sum sha512sum; do
+    "$chksum" "$BUILDDIR/live-image-amd64.hybrid.iso" > "$BUILDDIR/live-image-amd64.hybrid.iso.$chksum"
+done
+
+echo "[SARBIAN-BUILD] Finished building SARbian."
