@@ -1,3 +1,0 @@
-Package: qgis qgis-* python-qgis python-qgis-* libqgis-*
-Pin: release a=buster-backports
-Pin-Priority: 1000
