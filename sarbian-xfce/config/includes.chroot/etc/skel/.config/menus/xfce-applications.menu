@@ -16,7 +16,7 @@
             <Category>Geography</Category>
         </Include>
 		<Name>Geography</Name>
-		<Directory>Geography.directory</Directory>
+		<Directory>Edu-Geography.directory</Directory>
 		<Layout>
 			<Merge type="menus" />
 			<Merge type="files" />
