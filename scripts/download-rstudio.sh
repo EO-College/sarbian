@@ -41,11 +41,11 @@ function checkFileMd5 {
 # define rstudio version here
 # make necessary adjustments when using a newer versions
 declare -r pkgname="rstudio"
-declare -r pkgver="1.1.456"
+declare -r pkgver="1.2.1335"
 declare -r arch="amd64"
-declare -r debfile="${pkgname}-xenial-${pkgver}-${arch}.deb"
-declare -r url="https://download1.rstudio.org/${debfile}"
-declare -r md5sum="d96e63548c2add890bac633bdb883f32"
+declare -r debfile="${pkgname}-${pkgver}-${arch}.deb"
+declare -r url="https://download1.rstudio.org/desktop/bionic/${arch}/${debfile}"
+declare -r md5sum="71a8d1990c0d97939804b46cfb0aea75"
 
 ###############################################################################
 
