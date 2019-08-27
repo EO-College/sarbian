@@ -14,12 +14,13 @@ python-pip
 python3-pip
 
 r-base
+# requirements for installing/compiling R packages
 gfortran
 libcairo2-dev
 libxt-dev
 libgdal-dev
 macutils
-
+libssl-dev
 
 libgeos-3.7.1
 libproj13
