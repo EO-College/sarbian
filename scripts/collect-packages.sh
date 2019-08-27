@@ -48,7 +48,7 @@ echo ">>> Packages have been successfully built/downloaded."
 
 ##
 # copy package files into image build tree
-declare -r PKGLISTS="$SCRIPTDIR/sarbian-xfce/config/packages.chroot/"
+declare -r PKGLISTS="$SCRIPTDIR/../sarbian-xfce/config/packages.chroot/"
 mkdir -p "$PKGLISTS"
 echo ">>> Copying packages into '$PKGLISTS'..."
 cp -v "$SCRIPTDIR/pkg/"*.deb "$PKGLISTS"
