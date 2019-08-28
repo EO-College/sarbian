@@ -28,7 +28,7 @@ The following software is installed for the processing and handling of SAR data.
 ### SAR polarimetry
 |Software name|Installation source |License|
 |:-----------|:-----------|:-----------------|
-|[PolSARPro 5.0](https://earth.esa.int/web/polsarpro/home)| own package build| GPL-2.0|
+|[PolSARPro 6.0](https://earth.esa.int/web/polsarpro/home)| own package build| GPL-2.0|
 
 ### SAR interferometry
 |Software name|Installation source |License|
@@ -60,12 +60,21 @@ The following software is installed for the processing and handling of SAR data.
 |:-----------|:-----------|:-----------------|
 |[R (r-base)](https://www.r-project.org/)| Debian repository|GPL-2.0|
 |[RStudio](rstudio.com)| Debian package from rstudio.com|AGPL-3.0|
-|[abind](https://cran.r-project.org/web/packages/abind/)| via R package manager|LGPL-2.0| 
+|[abind](https://cran.r-project.org/web/packages/abind/)| via R package manager|LGPL-2.0|
+|[caret](https://cran.r-project.org/web/packages/caret/)| via R package manager|GPL-2.0-or-later|
+|[cowplot](https://cran.r-project.org/web/packages/cowplot/)| via R package manager|GPL-2.0|
+|[dplyr](https://cran.r-project.org/web/packages/dplyr/)| via R package manager|MIT|
+|[foreach](https://cran.r-project.org/web/packages/foreach/)| via R package manager|Apache-2.0|
+|[ggplot2](https://cran.r-project.org/web/packages/ggplot2/)| via R package manager|GPL-2.0|
 |[jpeg](https://cran.r-project.org/web/packages/jpeg/)| via R package manager|GPL-2.0|
 |[mapproj](https://cran.r-project.org/web/packages/mapproj/)| via R package manager|LPL-1.02|
-|[raster](https://cran.r-project.org/web/packages/raster/)| via R package manager|GPL-3.0| 
-|[rgdal](https://cran.r-project.org/web/packages/rgdal/)| via R package manager|GPL-2.0| 
-|[rgeos](https://cran.r-project.org/web/packages/rgeos)| via R package manager|GPL-2.0| 
+|[openair](https://cran.r-project.org/web/packages/openair/)| via R package manager|GPL-2.0-or-later|
+|[raster](https://cran.r-project.org/web/packages/raster/)| via R package manager|GPL-3.0|
+|[readxl](https://cran.r-project.org/web/packages/readxl/)| via R package manager|GPL-3.0|
+|[reshape2](https://cran.r-project.org/web/packages/reshape2/)| via R package manager|MIT|
+|[rgdal](https://cran.r-project.org/web/packages/rgdal/)| via R package manager|GPL-2.0|
+|[rgeos](https://cran.r-project.org/web/packages/rgeos)| via R package manager|GPL-2.0|
+|[scales](https://cran.r-project.org/web/packages/scales)| via R package manager|MIT|
 |[shiny](https://cran.r-project.org/web/packages/shiny/)| via R package manager|GPL-3.0|
 |[sp](https://cran.r-project.org/web/packages/sp/)| via R package manager|GPL-2.0|
 
