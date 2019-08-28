@@ -2,7 +2,7 @@
 #
 # collect-packages.sh - download/package software and place it in build tree
 #
-# Copyright (C) 2017-2018 Felix Cremer, Felix Glaser
+# Copyright (C) 2017-2019 Felix Cremer, Felix Glaser
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

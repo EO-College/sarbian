@@ -2,7 +2,7 @@
 #
 # download-snap.sh - download script for ESA SNAP Sentinel Toolbox installer
 #
-# Copyright (C) 2017-2018 Felix Cremer, Felix Glaser
+# Copyright (C) 2017-2019 Felix Cremer, Felix Glaser
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
