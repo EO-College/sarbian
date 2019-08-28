@@ -21,6 +21,9 @@ libxt-dev
 libgdal-dev
 macutils
 libssl-dev
+libudunits2-dev
+libgit2-dev
+libmagick++-dev
 
 libgeos-3.7.1
 libproj13
