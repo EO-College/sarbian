@@ -8,8 +8,10 @@ MIRROR="https://cran.rstudio.com"
 
 declare -ar rpkgs=(
     abind
+    caret
     cowplot
     dplyr
+    foreach
     ggplot2
     jpeg
     mapproj
