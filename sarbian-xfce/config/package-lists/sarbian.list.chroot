@@ -54,3 +54,10 @@ octave-nan
 octave-netcdf
 
 julia
+
+otb-bin
+otb-bin-qt
+monteverdi
+otb-qgis
+python-otb
+python3-otb
