@@ -71,4 +71,4 @@ fi
 
 ##
 # remove installer file
-rm -vrf /usr/local/bin/esa-snap_sentinel_unix_6_0.sh
+rm -vrf /usr/local/bin/esa-snap_sentinel_unix_7_0.sh
