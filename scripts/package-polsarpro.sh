@@ -180,6 +180,8 @@ function create_package() {
     install -Dm644 "$PP_SRCDIR/License/PolSARpro_v6.0_Biomass_Edition_LICENSE.txt" "$PP_PKGDIR/usr/share/doc/${pkgname}/copyright"
     # launcher for polsarpro
     install -Dm755 "$PP_PKG_FILES/polsarpro" "$PP_PKGDIR/usr/bin/polsarpro"
+    # desktop file for polsarpro
+    install -Dm644 "$PP_PKG_FILES/polsarpro.desktop" "$PP_PKGDIR/usr/share/applications/polsarpro.desktop"
 
     # remove unnecessary files
     rm -rf "$PP_PKGDIR/opt/${pkgname}/Soft/src"
