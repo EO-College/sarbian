@@ -1,0 +1,14 @@
+Source: gmtsar
+Section: science
+Priority: optional
+Maintainer: SARbian Team <sarbian@uni-jena.de>
+Build-Depends: cmake, debhelper (>=11~), cmake, autoconf, libtiff5-dev, libhdf5-dev, gfortran, g++, libgmt-dev, gmt, libblas-dev, liblapack-dev, tcsh
+Standards-Version: 4.1.4
+Homepage: https://github.com/gmtsar/gmtsar
+
+Package: gmtsar
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, tcsh
+Description: InSAR processing system based on Generic Mapping Tools (GMT).
+  GMTSAR is an open source (GNU General Public License) InSAR processing system
+  designed for users familiar with Generic Mapping Tools (GMT).

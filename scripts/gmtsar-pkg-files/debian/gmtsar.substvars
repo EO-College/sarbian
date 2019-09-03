@@ -1,0 +1,4 @@
+perl:Depends=perl:any
+shlibs:Depends=libblas3 | libblas.so.3, libc6 (>= 2.27), libgmt5 (>= 5.1.2), libhdf5-103, libhdf5-cpp-103 (>= 1.8.13), liblapack3 | liblapack.so.3, libsz2, libtiff5 (>= 4.0.3), zlib1g (>= 1:1.1.4)
+misc:Depends=
+misc:Pre-Depends=

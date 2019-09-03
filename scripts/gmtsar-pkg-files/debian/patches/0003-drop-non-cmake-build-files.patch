@@ -1,0 +1,6688 @@
+diff --git a/GNUmakefile b/GNUmakefile
+deleted file mode 100644
+index 2131d31..0000000
+--- a/GNUmakefile
++++ /dev/null
+@@ -1,37 +0,0 @@
+-#-------------------------------------------------------------------------------
+-#  $Id: GNUmakefile 210 2015-08-07 15:46:10Z pwessel $
+-#
+-#       makefile for top GMTSAR directory
+-#
+-#	!!! THIS MAKEFILE IS GMTSAR GMT DEVELOPERS ONLY !!!
+-#
+-#	This makefile extends the regular Makefile by adding
+-#	targets to build tarballs, get latest GNU config files.
+-#
+-#	Date:		27-JAN-2013
+-#-------------------------------------------------------------------------------
+-
+-include Makefile
+-
+-# Where to place the gmtsar tarball
+-#FTPDIR	= /topex/ftp/pub/gmtsar
+-FTPDIR	= ..
+-
+-create:
+-# We make the $(PACKAGE_TARNAME)-$(GMTSAR_VERSION) link from scratch each time
+-	cd ..; rm -f $(PACKAGE_TARNAME)-$(GMTSAR_VERSION); $(LN_S) $(notdir $(PWD)) $(PACKAGE_TARNAME)-$(GMTSAR_VERSION)
+-
+-tar:	distro
+-
+-distro: create
+-	$(MAKE) spotless
+-	find . -type l -exec rm -f {} \;
+-	COPYFILE_DISABLE=true $(GNUTAR) --owner 0 --group 0 --mode a=rX,u=rwX -cjhvf $(FTPDIR)/$(PACKAGE_TARNAME)-$(GMTSAR_VERSION)-src.tar.bz2 \
+-		-C .. $(PACKAGE_TARNAME)-$(GMTSAR_VERSION) --exclude GNUmakefile --exclude .svn
+-	rm -f $(PACKAGE_TARNAME)-$(GMTSAR_VERSION)
+-
+-latest-config:
+-		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD" -s -R -o config.sub
+-		curl "http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD" -s -R -o config.guess
+-		curl "http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/ax_blas.m4" -s -R -o ax_blas.m4
+-		curl "http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/ax_lapack.m4" -s -R -o ax_lapack.m4
+diff --git a/Makefile b/Makefile
+deleted file mode 100644
+index ff36367..0000000
+--- a/Makefile
++++ /dev/null
+@@ -1,99 +0,0 @@
+-#       $Id: Makefile 236 2015-08-24 07:09:14Z pwessel $
+-#
+-#       makefile for top GMTSAR directory
+-
+-sinclude config.mk
+-
+-# Currently, S1A must happen before the CSK, TSZ, and RS2 builds due to dependencies via links
+-# We will fix this so one can make anyting in any order
+-#
+-PREPROCESSORS	= ALOS ERS S1A CSK TSX RS2 ENVI
+-#
+-DIRS		= gmtsar
+-ORBITS_URL	= http://topex.ucsd.edu/gmtsar/tar/ORBITS.tar
+-ORBITS		= ORBITS.tar
+-
+-all:	main preprocess
+-
+-help::
+-		@grep '^#!' Makefile | cut -c3-
+-#!----------------- MAKE HELP FOR GMTSAR-----------------
+-#!
+-#!make <target>, where <target> can be:
+-#!
+-#!all                : Compile everything
+-#!install            : Compile & install everything
+-#!clean              : Clean up and remove objects and library files
+-#!clean              : Clean and remove configured files as well
+-#!   ------------- Additional Targets   ------------- 
+-#!preprocess         : Only compile the preprocesors
+-#!main               : Only compile the main programs
+-#!install-preprocess : Only compile & install the preprocesors
+-#!install-main       : Only compile & install the main programs
+-#!install-orbits     : Obtain ORBITS.tar, prompt for directory, and install files
+-#!
+-
+-preprocess:
+-	for d in $(PREPROCESSORS); do \
+-		(cd preproc/$${d}_preproc; $(MAKE) all); \
+-	done
+-
+-main:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	install-main install-preproc
+-
+-install-preproc:
+-	for d in $(PREPROCESSORS); do \
+-		(cd preproc/$${d}_preproc; $(MAKE) install); \
+-	done
+-	$(INSTALL) preproc/ERS_preproc/scripts/virgin.PRM $(sharedir)
+-	$(INSTALL) preproc/ENVI_preproc/scripts/virgin_envisat.PRM $(sharedir)
+-
+-install-main:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-	$(INSTALL) -d $(sharedir)
+-	$(INSTALL) -d $(sharedir)/filters
+-	$(INSTALL) -d $(sharedir)/snaphu/config
+-	$(INSTALL) gmtsar/filters/[bfgsxy]* $(sharedir)/filters
+-	$(INSTALL) gmtsar/csh/snaphu.conf.* $(sharedir)/snaphu/config
+-
+-install-orbits:
+-	wget $(ORBITS_URL) 2>/dev/null || curl -O $(ORBITS_URL)
+-	@if [ -f $(ORBITS) ]; then \
+-		read -p "==> Enter directory where the ORBITS subdirectory should be installed: " ORB_DIR ; \
+-		mkdir -p $$ORB_DIR/ORBITS ; \
+-		echo "Extracting orbits files into $$ORB_DIR/ORBITS";  \
+-		tar xf $(ORBITS) -C$$ORB_DIR/ORBITS ; \
+-		echo "Run configure --with-orbits-dir=$$ORB_DIR/ORBITS";  \
+-	else \
+-		echo "Unable to obtain $(ORBITS_URL) - Perhaps you have neither curl nor wget installed?";  \
+-	fi
+-
+-uninstall:
+-	for d in $(DIRS) $(PREPROCESSORS); do \
+-		(cd $$d; $(MAKE) uninstall); \
+-	done
+-	rm -rf $(sharedir)
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-	for d in $(PREPROCESSORS); do \
+-		(cd preproc/$${d}_preproc; $(MAKE) clean); \
+-	done
+-
+-spotless:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) spotless); \
+-	done
+-	for d in $(PREPROCESSORS); do \
+-		(cd preproc/$${d}_preproc; $(MAKE) spotless); \
+-	done
+-	rm -rf $(sharedir) bin share
+-	rm -rf config.log config.status config.mk configure autom4te.cache
+diff --git a/ax_blas.m4 b/ax_blas.m4
+deleted file mode 100644
+index 821459d..0000000
+--- a/ax_blas.m4
++++ /dev/null
+@@ -1,238 +0,0 @@
+-# ===========================================================================
+-#          http://www.gnu.org/software/autoconf-archive/ax_blas.html
+-# ===========================================================================
+-#
+-# SYNOPSIS
+-#
+-#   AX_BLAS([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+-#
+-# DESCRIPTION
+-#
+-#   This macro looks for a library that implements the BLAS linear-algebra
+-#   interface (see http://www.netlib.org/blas/). On success, it sets the
+-#   BLAS_LIBS output variable to hold the requisite library linkages.
+-#
+-#   To link with BLAS, you should link with:
+-#
+-#     $BLAS_LIBS $LIBS $FLIBS
+-#
+-#   in that order. FLIBS is the output variable of the
+-#   AC_F77_LIBRARY_LDFLAGS macro (called if necessary by AX_BLAS), and is
+-#   sometimes necessary in order to link with F77 libraries. Users will also
+-#   need to use AC_F77_DUMMY_MAIN (see the autoconf manual), for the same
+-#   reason.
+-#
+-#   Many libraries are searched for, from ATLAS to CXML to ESSL. The user
+-#   may also use --with-blas=<lib> in order to use some specific BLAS
+-#   library <lib>. In order to link successfully, however, be aware that you
+-#   will probably need to use the same Fortran compiler (which can be set
+-#   via the F77 env. var.) as was used to compile the BLAS library.
+-#
+-#   ACTION-IF-FOUND is a list of shell commands to run if a BLAS library is
+-#   found, and ACTION-IF-NOT-FOUND is a list of commands to run it if it is
+-#   not found. If ACTION-IF-FOUND is not specified, the default action will
+-#   define HAVE_BLAS.
+-#
+-# LICENSE
+-#
+-#   Copyright (c) 2008 Steven G. Johnson <stevenj@alum.mit.edu>
+-#
+-#   This program is free software: you can redistribute it and/or modify it
+-#   under the terms of the GNU General Public License as published by the
+-#   Free Software Foundation, either version 3 of the License, or (at your
+-#   option) any later version.
+-#
+-#   This program is distributed in the hope that it will be useful, but
+-#   WITHOUT ANY WARRANTY; without even the implied warranty of
+-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+-#   Public License for more details.
+-#
+-#   You should have received a copy of the GNU General Public License along
+-#   with this program. If not, see <http://www.gnu.org/licenses/>.
+-#
+-#   As a special exception, the respective Autoconf Macro's copyright owner
+-#   gives unlimited permission to copy, distribute and modify the configure
+-#   scripts that are the output of Autoconf when processing the Macro. You
+-#   need not follow the terms of the GNU General Public License when using
+-#   or distributing such scripts, even though portions of the text of the
+-#   Macro appear in them. The GNU General Public License (GPL) does govern
+-#   all other use of the material that constitutes the Autoconf Macro.
+-#
+-#   This special exception to the GPL applies to versions of the Autoconf
+-#   Macro released by the Autoconf Archive. When you make and distribute a
+-#   modified version of the Autoconf Macro, you may extend this special
+-#   exception to the GPL to apply to your modified version as well.
+-
+-#serial 14
+-
+-AU_ALIAS([ACX_BLAS], [AX_BLAS])
+-AC_DEFUN([AX_BLAS], [
+-AC_PREREQ(2.50)
+-AC_REQUIRE([AC_F77_LIBRARY_LDFLAGS])
+-AC_REQUIRE([AC_CANONICAL_HOST])
+-ax_blas_ok=no
+-
+-AC_ARG_WITH(blas,
+-	[AS_HELP_STRING([--with-blas=<lib>], [use BLAS library <lib>])])
+-case $with_blas in
+-	yes | "") ;;
+-	no) ax_blas_ok=disable ;;
+-	-* | */* | *.a | *.so | *.so.* | *.o) BLAS_LIBS="$with_blas" ;;
+-	*) BLAS_LIBS="-l$with_blas" ;;
+-esac
+-
+-# Get fortran linker names of BLAS functions to check for.
+-AC_F77_FUNC(sgemm)
+-AC_F77_FUNC(dgemm)
+-
+-ax_blas_save_LIBS="$LIBS"
+-LIBS="$LIBS $FLIBS"
+-
+-# First, check BLAS_LIBS environment variable
+-if test $ax_blas_ok = no; then
+-if test "x$BLAS_LIBS" != x; then
+-	save_LIBS="$LIBS"; LIBS="$BLAS_LIBS $LIBS"
+-	AC_MSG_CHECKING([for $sgemm in $BLAS_LIBS])
+-	AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes], [BLAS_LIBS=""])
+-	AC_MSG_RESULT($ax_blas_ok)
+-	LIBS="$save_LIBS"
+-fi
+-fi
+-
+-# BLAS linked to by default?  (happens on some supercomputers)
+-if test $ax_blas_ok = no; then
+-	save_LIBS="$LIBS"; LIBS="$LIBS"
+-	AC_MSG_CHECKING([if $sgemm is being linked in already])
+-	AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes])
+-	AC_MSG_RESULT($ax_blas_ok)
+-	LIBS="$save_LIBS"
+-fi
+-
+-# BLAS in OpenBLAS library? (http://xianyi.github.com/OpenBLAS/)
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(openblas, $sgemm, [ax_blas_ok=yes
+-			                BLAS_LIBS="-lopenblas"])
+-fi
+-
+-# BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(atlas, ATL_xerbla,
+-		[AC_CHECK_LIB(f77blas, $sgemm,
+-		[AC_CHECK_LIB(cblas, cblas_dgemm,
+-			[ax_blas_ok=yes
+-			 BLAS_LIBS="-lcblas -lf77blas -latlas"],
+-			[], [-lf77blas -latlas])],
+-			[], [-latlas])])
+-fi
+-
+-# BLAS in PhiPACK libraries? (requires generic BLAS lib, too)
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(blas, $sgemm,
+-		[AC_CHECK_LIB(dgemm, $dgemm,
+-		[AC_CHECK_LIB(sgemm, $sgemm,
+-			[ax_blas_ok=yes; BLAS_LIBS="-lsgemm -ldgemm -lblas"],
+-			[], [-lblas])],
+-			[], [-lblas])])
+-fi
+-
+-# BLAS in Intel MKL library?
+-if test $ax_blas_ok = no; then
+-	# MKL for gfortran
+-	if test x"$ac_cv_fc_compiler_gnu" = xyes; then
+-		# 64 bit
+-		if test $host_cpu = x86_64; then
+-			AC_CHECK_LIB(mkl_gf_lp64, $sgemm,
+-			[ax_blas_ok=yes;BLAS_LIBS="-lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lpthread"],,
+-			[-lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lpthread])
+-		# 32 bit
+-		elif test $host_cpu = i686; then
+-			AC_CHECK_LIB(mkl_gf, $sgemm,
+-				[ax_blas_ok=yes;BLAS_LIBS="-lmkl_gf -lmkl_sequential -lmkl_core -lpthread"],,
+-				[-lmkl_gf -lmkl_sequential -lmkl_core -lpthread])
+-		fi
+-	# MKL for other compilers (Intel, PGI, ...?)
+-	else
+-		# 64-bit
+-		if test $host_cpu = x86_64; then
+-			AC_CHECK_LIB(mkl_intel_lp64, $sgemm,
+-				[ax_blas_ok=yes;BLAS_LIBS="-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread"],,
+-				[-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread])
+-		# 32-bit
+-		elif test $host_cpu = i686; then
+-			AC_CHECK_LIB(mkl_intel, $sgemm,
+-				[ax_blas_ok=yes;BLAS_LIBS="-lmkl_intel -lmkl_sequential -lmkl_core -lpthread"],,
+-				[-lmkl_intel -lmkl_sequential -lmkl_core -lpthread])
+-		fi
+-	fi
+-fi
+-# Old versions of MKL
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(mkl, $sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lmkl -lguide -lpthread"],,[-lguide -lpthread])
+-fi
+-
+-# BLAS in Apple vecLib library?
+-if test $ax_blas_ok = no; then
+-	save_LIBS="$LIBS"; LIBS="-framework vecLib $LIBS"
+-	AC_MSG_CHECKING([for $sgemm in -framework vecLib])
+-	AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-framework vecLib"])
+-	AC_MSG_RESULT($ax_blas_ok)
+-	LIBS="$save_LIBS"
+-fi
+-
+-# BLAS in Alpha CXML library?
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(cxml, $sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lcxml"])
+-fi
+-
+-# BLAS in Alpha DXML library? (now called CXML, see above)
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(dxml, $sgemm, [ax_blas_ok=yes;BLAS_LIBS="-ldxml"])
+-fi
+-
+-# BLAS in Sun Performance library?
+-if test $ax_blas_ok = no; then
+-	if test "x$GCC" != xyes; then # only works with Sun CC
+-		AC_CHECK_LIB(sunmath, acosp,
+-			[AC_CHECK_LIB(sunperf, $sgemm,
+-				[BLAS_LIBS="-xlic_lib=sunperf -lsunmath"
+-                                 ax_blas_ok=yes],[],[-lsunmath])])
+-	fi
+-fi
+-
+-# BLAS in SCSL library?  (SGI/Cray Scientific Library)
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(scs, $sgemm, [ax_blas_ok=yes; BLAS_LIBS="-lscs"])
+-fi
+-
+-# BLAS in SGIMATH library?
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(complib.sgimath, $sgemm,
+-		     [ax_blas_ok=yes; BLAS_LIBS="-lcomplib.sgimath"])
+-fi
+-
+-# BLAS in IBM ESSL library? (requires generic BLAS lib, too)
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(blas, $sgemm,
+-		[AC_CHECK_LIB(essl, $sgemm,
+-			[ax_blas_ok=yes; BLAS_LIBS="-lessl -lblas"],
+-			[], [-lblas $FLIBS])])
+-fi
+-
+-# Generic BLAS library?
+-if test $ax_blas_ok = no; then
+-	AC_CHECK_LIB(blas, $sgemm, [ax_blas_ok=yes; BLAS_LIBS="-lblas"])
+-fi
+-
+-AC_SUBST(BLAS_LIBS)
+-
+-LIBS="$ax_blas_save_LIBS"
+-
+-# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
+-if test x"$ax_blas_ok" = xyes; then
+-        ifelse([$1],,AC_DEFINE(HAVE_BLAS,1,[Define if you have a BLAS library.]),[$1])
+-        :
+-else
+-        ax_blas_ok=no
+-        $2
+-fi
+-])dnl AX_BLAS
+diff --git a/ax_lapack.m4 b/ax_lapack.m4
+deleted file mode 100644
+index 6aa16aa..0000000
+--- a/ax_lapack.m4
++++ /dev/null
+@@ -1,131 +0,0 @@
+-# ===========================================================================
+-#         http://www.gnu.org/software/autoconf-archive/ax_lapack.html
+-# ===========================================================================
+-#
+-# SYNOPSIS
+-#
+-#   AX_LAPACK([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+-#
+-# DESCRIPTION
+-#
+-#   This macro looks for a library that implements the LAPACK linear-algebra
+-#   interface (see http://www.netlib.org/lapack/). On success, it sets the
+-#   LAPACK_LIBS output variable to hold the requisite library linkages.
+-#
+-#   To link with LAPACK, you should link with:
+-#
+-#     $LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS
+-#
+-#   in that order. BLAS_LIBS is the output variable of the AX_BLAS macro,
+-#   called automatically. FLIBS is the output variable of the
+-#   AC_F77_LIBRARY_LDFLAGS macro (called if necessary by AX_BLAS), and is
+-#   sometimes necessary in order to link with F77 libraries. Users will also
+-#   need to use AC_F77_DUMMY_MAIN (see the autoconf manual), for the same
+-#   reason.
+-#
+-#   The user may also use --with-lapack=<lib> in order to use some specific
+-#   LAPACK library <lib>. In order to link successfully, however, be aware
+-#   that you will probably need to use the same Fortran compiler (which can
+-#   be set via the F77 env. var.) as was used to compile the LAPACK and BLAS
+-#   libraries.
+-#
+-#   ACTION-IF-FOUND is a list of shell commands to run if a LAPACK library
+-#   is found, and ACTION-IF-NOT-FOUND is a list of commands to run it if it
+-#   is not found. If ACTION-IF-FOUND is not specified, the default action
+-#   will define HAVE_LAPACK.
+-#
+-# LICENSE
+-#
+-#   Copyright (c) 2009 Steven G. Johnson <stevenj@alum.mit.edu>
+-#
+-#   This program is free software: you can redistribute it and/or modify it
+-#   under the terms of the GNU General Public License as published by the
+-#   Free Software Foundation, either version 3 of the License, or (at your
+-#   option) any later version.
+-#
+-#   This program is distributed in the hope that it will be useful, but
+-#   WITHOUT ANY WARRANTY; without even the implied warranty of
+-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+-#   Public License for more details.
+-#
+-#   You should have received a copy of the GNU General Public License along
+-#   with this program. If not, see <http://www.gnu.org/licenses/>.
+-#
+-#   As a special exception, the respective Autoconf Macro's copyright owner
+-#   gives unlimited permission to copy, distribute and modify the configure
+-#   scripts that are the output of Autoconf when processing the Macro. You
+-#   need not follow the terms of the GNU General Public License when using
+-#   or distributing such scripts, even though portions of the text of the
+-#   Macro appear in them. The GNU General Public License (GPL) does govern
+-#   all other use of the material that constitutes the Autoconf Macro.
+-#
+-#   This special exception to the GPL applies to versions of the Autoconf
+-#   Macro released by the Autoconf Archive. When you make and distribute a
+-#   modified version of the Autoconf Macro, you may extend this special
+-#   exception to the GPL to apply to your modified version as well.
+-
+-#serial 7
+-
+-AU_ALIAS([ACX_LAPACK], [AX_LAPACK])
+-AC_DEFUN([AX_LAPACK], [
+-AC_REQUIRE([AX_BLAS])
+-ax_lapack_ok=no
+-
+-AC_ARG_WITH(lapack,
+-        [AS_HELP_STRING([--with-lapack=<lib>], [use LAPACK library <lib>])])
+-case $with_lapack in
+-        yes | "") ;;
+-        no) ax_lapack_ok=disable ;;
+-        -* | */* | *.a | *.so | *.so.* | *.o) LAPACK_LIBS="$with_lapack" ;;
+-        *) LAPACK_LIBS="-l$with_lapack" ;;
+-esac
+-
+-# Get fortran linker name of LAPACK function to check for.
+-AC_F77_FUNC(cheev)
+-
+-# We cannot use LAPACK if BLAS is not found
+-if test "x$ax_blas_ok" != xyes; then
+-        ax_lapack_ok=noblas
+-        LAPACK_LIBS=""
+-fi
+-
+-# First, check LAPACK_LIBS environment variable
+-if test "x$LAPACK_LIBS" != x; then
+-        save_LIBS="$LIBS"; LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
+-        AC_MSG_CHECKING([for $cheev in $LAPACK_LIBS])
+-        AC_TRY_LINK_FUNC($cheev, [ax_lapack_ok=yes], [LAPACK_LIBS=""])
+-        AC_MSG_RESULT($ax_lapack_ok)
+-        LIBS="$save_LIBS"
+-        if test $ax_lapack_ok = no; then
+-                LAPACK_LIBS=""
+-        fi
+-fi
+-
+-# LAPACK linked to by default?  (is sometimes included in BLAS lib)
+-if test $ax_lapack_ok = no; then
+-        save_LIBS="$LIBS"; LIBS="$LIBS $BLAS_LIBS $FLIBS"
+-        AC_CHECK_FUNC($cheev, [ax_lapack_ok=yes])
+-        LIBS="$save_LIBS"
+-fi
+-
+-# Generic LAPACK library?
+-for lapack in lapack lapack_rs6k; do
+-        if test $ax_lapack_ok = no; then
+-                save_LIBS="$LIBS"; LIBS="$BLAS_LIBS $LIBS"
+-                AC_CHECK_LIB($lapack, $cheev,
+-                    [ax_lapack_ok=yes; LAPACK_LIBS="-l$lapack"], [], [$FLIBS])
+-                LIBS="$save_LIBS"
+-        fi
+-done
+-
+-AC_SUBST(LAPACK_LIBS)
+-
+-# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
+-if test x"$ax_lapack_ok" = xyes; then
+-        ifelse([$1],,AC_DEFINE(HAVE_LAPACK,1,[Define if you have LAPACK library.]),[$1])
+-        :
+-else
+-        ax_lapack_ok=no
+-        $2
+-fi
+-])dnl AX_LAPACK
+diff --git a/ax_lib_hdf5.m4 b/ax_lib_hdf5.m4
+deleted file mode 100644
+index 3174385..0000000
+--- a/ax_lib_hdf5.m4
++++ /dev/null
+@@ -1,309 +0,0 @@
+-# ===========================================================================
+-#        http://www.gnu.org/software/autoconf-archive/ax_lib_hdf5.html
+-# ===========================================================================
+-#
+-# SYNOPSIS
+-#
+-#   AX_LIB_HDF5([serial/parallel])
+-#
+-# DESCRIPTION
+-#
+-#   This macro provides tests of the availability of HDF5 library.
+-#
+-#   The optional macro argument should be either 'serial' or 'parallel'. The
+-#   former only looks for serial HDF5 installations via h5cc. The latter
+-#   only looks for parallel HDF5 installations via h5pcc. If the optional
+-#   argument is omitted, serial installations will be preferred over
+-#   parallel ones.
+-#
+-#   The macro adds a --with-hdf5 option accepting one of three values:
+-#
+-#     no   - do not check for the HDF5 library.
+-#     yes  - do check for HDF5 library in standard locations.
+-#     path - complete path to the HDF5 helper script h5cc or h5pcc.
+-#
+-#   If HDF5 is successfully found, this macro calls
+-#
+-#     AC_SUBST(HDF5_VERSION)
+-#     AC_SUBST(HDF5_CC)
+-#     AC_SUBST(HDF5_CFLAGS)
+-#     AC_SUBST(HDF5_CPPFLAGS)
+-#     AC_SUBST(HDF5_LDFLAGS)
+-#     AC_SUBST(HDF5_LIBS)
+-#     AC_SUBST(HDF5_FC)
+-#     AC_SUBST(HDF5_FFLAGS)
+-#     AC_SUBST(HDF5_FLIBS)
+-#     AC_DEFINE(HAVE_HDF5)
+-#
+-#   and sets with_hdf5="yes".  Additionally, the macro sets
+-#   with_hdf5_fortran="yes" if a matching Fortran wrapper script is found.
+-#   Note that Autconf's Fortran support is not used to perform this check.
+-#   H5CC and H5FC will contain the appropriate serial or parallel HDF5
+-#   wrapper script locations.
+-#
+-#   If HDF5 is disabled or not found, this macros sets with_hdf5="no" and
+-#   with_hdf5_fortran="no".
+-#
+-#   Your configuration script can test $with_hdf to take any further
+-#   actions. HDF5_{C,CPP,LD}FLAGS may be used when building with C or C++.
+-#   HDF5_F{FLAGS,LIBS} should be used when building Fortran applications.
+-#
+-#   To use the macro, one would code one of the following in "configure.ac"
+-#   before AC_OUTPUT:
+-#
+-#     1) dnl Check for HDF5 support
+-#        AX_LIB_HDF5()
+-#
+-#     2) dnl Check for serial HDF5 support
+-#        AX_LIB_HDF5([serial])
+-#
+-#     3) dnl Check for parallel HDF5 support
+-#        AX_LIB_HDF5([parallel])
+-#
+-#   One could test $with_hdf5 for the outcome or display it as follows
+-#
+-#     echo "HDF5 support:  $with_hdf5"
+-#
+-#   You could also for example, override the default CC in "configure.ac" to
+-#   enforce compilation with the compiler that HDF5 uses:
+-#
+-#     AX_LIB_HDF5([parallel])
+-#     if test "$with_hdf5" = "yes"; then
+-#             CC="$HDF5_CC"
+-#     else
+-#             AC_MSG_ERROR([Unable to find HDF5, we need parallel HDF5.])
+-#     fi
+-#
+-# LICENSE
+-#
+-#   Copyright (c) 2009 Timothy Brown <tbrown@freeshell.org>
+-#   Copyright (c) 2010 Rhys Ulerich <rhys.ulerich@gmail.com>
+-#
+-#   Copying and distribution of this file, with or without modification, are
+-#   permitted in any medium without royalty provided the copyright notice
+-#   and this notice are preserved. This file is offered as-is, without any
+-#   warranty.
+-
+-#serial 11
+-
+-AC_DEFUN([AX_LIB_HDF5], [
+-
+-AC_REQUIRE([AC_PROG_SED])
+-AC_REQUIRE([AC_PROG_AWK])
+-AC_REQUIRE([AC_PROG_GREP])
+-
+-dnl Check first argument is one of the recognized values.
+-dnl Fail eagerly if is incorrect as this simplifies case statements below.
+-if   test "m4_normalize(m4_default([$1],[]))" = ""        ; then
+-    : # Recognized value
+-elif test "m4_normalize(m4_default([$1],[]))" = "serial"  ; then
+-    : # Recognized value
+-elif test "m4_normalize(m4_default([$1],[]))" = "parallel"; then
+-    : # Recognized value
+-else
+-    AC_MSG_ERROR([
+-Unrecognized value for AX[]_LIB_HDF5 within configure.ac.
+-If supplied, argument 1 must be either 'serial' or 'parallel'.
+-])
+-fi
+-
+-dnl Add a default --with-hdf5 configuration option.
+-AC_ARG_WITH([hdf5],
+-  AS_HELP_STRING(
+-    [--with-hdf5=[yes/no/PATH]],
+-    m4_case(m4_normalize([$1]),
+-            [serial],   [location of h5cc for serial HDF5 configuration],
+-            [parallel], [location of h5pcc for parallel HDF5 configuration],
+-            [location of h5cc or h5pcc for HDF5 configuration])
+-  ),
+-  [if test "$withval" = "no"; then
+-     with_hdf5="no"
+-   elif test "$withval" = "yes"; then
+-     with_hdf5="yes"
+-   else
+-     with_hdf5="yes"
+-     H5CC="$withval"
+-   fi],
+-   [with_hdf5="yes"]
+-)
+-
+-dnl Set defaults to blank
+-HDF5_CC=""
+-HDF5_VERSION=""
+-HDF5_CFLAGS=""
+-HDF5_CPPFLAGS=""
+-HDF5_LDFLAGS=""
+-HDF5_LIBS=""
+-HDF5_FC=""
+-HDF5_FFLAGS=""
+-HDF5_FLIBS=""
+-
+-dnl Try and find hdf5 compiler tools and options.
+-if test "$with_hdf5" = "yes"; then
+-    if test -z "$H5CC"; then
+-        dnl Check to see if H5CC is in the path.
+-        AC_PATH_PROGS(
+-            [H5CC],
+-            m4_case(m4_normalize([$1]),
+-                [serial],   [h5cc],
+-                [parallel], [h5pcc],
+-                [h5cc h5pcc]),
+-            [])
+-    else
+-        AC_MSG_CHECKING([Using provided HDF5 C wrapper])
+-        AC_MSG_RESULT([$H5CC])
+-    fi
+-    AC_MSG_CHECKING([for HDF5 libraries])
+-    if test ! -f "$H5CC" || test ! -x "$H5CC"; then
+-        AC_MSG_RESULT([no])
+-        AC_MSG_WARN(m4_case(m4_normalize([$1]),
+-            [serial],  [
+-Unable to locate serial HDF5 compilation helper script 'h5cc'.
+-Please specify --with-hdf5=<LOCATION> as the full path to h5cc.
+-HDF5 support is being disabled (equivalent to --with-hdf5=no).
+-],            [parallel],[
+-Unable to locate parallel HDF5 compilation helper script 'h5pcc'.
+-Please specify --with-hdf5=<LOCATION> as the full path to h5pcc.
+-HDF5 support is being disabled (equivalent to --with-hdf5=no).
+-],            [
+-Unable to locate HDF5 compilation helper scripts 'h5cc' or 'h5pcc'.
+-Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
+-HDF5 support is being disabled (equivalent to --with-hdf5=no).
+-]))
+-        with_hdf5="no"
+-        with_hdf5_fortran="no"
+-    else
+-        dnl Get the h5cc output
+-        HDF5_SHOW=$(eval $H5CC -show)
+-
+-        dnl Get the actual compiler used
+-        HDF5_CC=$(eval $H5CC -show | $AWK '{print $[]1}')
+-        if test "$HDF5_CC" = "ccache"; then
+-            HDF5_CC=$(eval $H5CC -show | $AWK '{print $[]2}')
+-        fi
+-
+-        dnl h5cc provides both AM_ and non-AM_ options
+-        dnl depending on how it was compiled either one of
+-        dnl these are empty. Lets roll them both into one.
+-
+-        dnl Look for "HDF5 Version: X.Y.Z"
+-        HDF5_VERSION=$(eval $H5CC -showconfig | $GREP 'HDF5 Version:' \
+-            | $AWK '{print $[]3}')
+-
+-        dnl A ideal situation would be where everything we needed was
+-        dnl in the AM_* variables. However most systems are not like this
+-        dnl and seem to have the values in the non-AM variables.
+-        dnl
+-        dnl We try the following to find the flags:
+-        dnl (1) Look for "NAME:" tags
+-        dnl (2) Look for "H5_NAME:" tags
+-        dnl (3) Look for "AM_NAME:" tags
+-        dnl
+-        HDF5_tmp_flags=$(eval $H5CC -showconfig \
+-            | $GREP 'FLAGS\|Extra libraries:' \
+-            | $AWK -F: '{printf("%s "), $[]2}' )
+-
+-        dnl Find the installation directory and append include/
+-        HDF5_tmp_inst=$(eval $H5CC -showconfig \
+-            | $GREP 'Installation point:' \
+-            | $AWK '{print $[]NF}' )
+-
+-        dnl Add this to the CPPFLAGS
+-        HDF5_CPPFLAGS="-I${HDF5_tmp_inst}/include"
+-
+-        dnl Now sort the flags out based upon their prefixes
+-        for arg in $HDF5_SHOW $HDF5_tmp_flags ; do
+-          case "$arg" in
+-            -I*) echo $HDF5_CPPFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+-                  || HDF5_CPPFLAGS="$arg $HDF5_CPPFLAGS"
+-              ;;
+-            -L*) echo $HDF5_LDFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+-                  || HDF5_LDFLAGS="$arg $HDF5_LDFLAGS"
+-              ;;
+-            -l*) echo $HDF5_LIBS | $GREP -e "$arg" 2>&1 >/dev/null \
+-                  || HDF5_LIBS="$arg $HDF5_LIBS"
+-              ;;
+-          esac
+-        done
+-
+-        HDF5_LIBS="$HDF5_LIBS -lhdf5"
+-        AC_MSG_RESULT([yes (version $[HDF5_VERSION])])
+-
+-        dnl See if we can compile
+-        ax_lib_hdf5_save_CC=$CC
+-        ax_lib_hdf5_save_CPPFLAGS=$CPPFLAGS
+-        ax_lib_hdf5_save_LIBS=$LIBS
+-        ax_lib_hdf5_save_LDFLAGS=$LDFLAGS
+-        CC=$HDF5_CC
+-        CPPFLAGS=$HDF5_CPPFLAGS
+-        LIBS=$HDF5_LIBS
+-        LDFLAGS=$HDF5_LDFLAGS
+-        AC_CHECK_HEADER([hdf5.h], [ac_cv_hadf5_h=yes], [ac_cv_hadf5_h=no])
+-        AC_CHECK_LIB([hdf5], [H5Fcreate], [ac_cv_libhdf5=yes],
+-                     [ac_cv_libhdf5=no])
+-        if test "$ac_cv_hadf5_h" = "no" && test "$ac_cv_libhdf5" = "no" ; then
+-          AC_MSG_WARN([Unable to compile HDF5 test program])
+-        fi
+-        dnl Look for HDF5's high level library
+-        AC_HAVE_LIBRARY([hdf5_hl], [HDF5_LIBS="$HDF5_LIBS -lhdf5_hl"], [], [])
+-
+-        CC=$ax_lib_hdf5_save_CC
+-        CPPFLAGS=$ax_lib_hdf5_save_CPPFLAGS
+-        LIBS=$ax_lib_hdf5_save_LIBS
+-        LDFLAGS=$ax_lib_hdf5_save_LDFLAGS
+-
+-        AC_MSG_CHECKING([for matching HDF5 Fortran wrapper])
+-        dnl Presume HDF5 Fortran wrapper is just a name variant from H5CC
+-        H5FC=$(eval echo -n $H5CC | $SED -n 's/cc$/fc/p')
+-        if test -x "$H5FC"; then
+-            AC_MSG_RESULT([$H5FC])
+-            with_hdf5_fortran="yes"
+-            AC_SUBST([H5FC])
+-
+-            dnl Again, pry any remaining -Idir/-Ldir from compiler wrapper
+-            for arg in `$H5FC -show`
+-            do
+-              case "$arg" in #(
+-                -I*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+-                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+-                  ;;#(
+-                -L*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+-                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+-                     dnl HDF5 installs .mod files in with libraries,
+-                     dnl but some compilers need to find them with -I
+-                     echo $HDF5_FFLAGS | $GREP -e "-I${arg#-L}" >/dev/null \
+-                      || HDF5_FFLAGS="-I${arg#-L} $HDF5_FFLAGS"
+-                  ;;
+-              esac
+-            done
+-
+-            dnl Make Fortran link line by inserting Fortran libraries
+-            for arg in $HDF5_LIBS
+-            do
+-              case "$arg" in #(
+-                -lhdf5_hl) HDF5_FLIBS="$HDF5_FLIBS -lhdf5hl_fortran $arg"
+-                  ;; #(
+-                -lhdf5)    HDF5_FLIBS="$HDF5_FLIBS -lhdf5_fortran $arg"
+-                  ;; #(
+-                *) HDF5_FLIBS="$HDF5_FLIBS $arg"
+-                  ;;
+-              esac
+-            done
+-        else
+-            AC_MSG_RESULT([no])
+-            with_hdf5_fortran="no"
+-        fi
+-
+-	AC_SUBST([HDF5_VERSION])
+-	AC_SUBST([HDF5_CC])
+-	AC_SUBST([HDF5_CFLAGS])
+-	AC_SUBST([HDF5_CPPFLAGS])
+-	AC_SUBST([HDF5_LDFLAGS])
+-	AC_SUBST([HDF5_LIBS])
+-	AC_SUBST([HDF5_FC])
+-	AC_SUBST([HDF5_FFLAGS])
+-	AC_SUBST([HDF5_FLIBS])
+-	AC_DEFINE([HAVE_HDF5], [1], [Defined if you have HDF5 support])
+-    fi
+-fi
+-])
+diff --git a/config.guess b/config.guess
+deleted file mode 100644
+index fddac42..0000000
+--- a/config.guess
++++ /dev/null
+@@ -1,1438 +0,0 @@
+-#! /bin/sh
+-# Attempt to guess a canonical system name.
+-#   Copyright 1992-2015 Free Software Foundation, Inc.
+-
+-timestamp='2015-07-03'
+-
+-# This file is free software; you can redistribute it and/or modify it
+-# under the terms of the GNU General Public License as published by
+-# the Free Software Foundation; either version 3 of the License, or
+-# (at your option) any later version.
+-#
+-# This program is distributed in the hope that it will be useful, but
+-# WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-# General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+-#
+-# As a special exception to the GNU General Public License, if you
+-# distribute this file as part of a program that contains a
+-# configuration script generated by Autoconf, you may include it under
+-# the same distribution terms that you use for the rest of that
+-# program.  This Exception is an additional permission under section 7
+-# of the GNU General Public License, version 3 ("GPLv3").
+-#
+-# Originally written by Per Bothner; maintained since 2000 by Ben Elliston.
+-#
+-# You can get the latest version of this script from:
+-# http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD
+-#
+-# Please send patches to <config-patches@gnu.org>.
+-
+-
+-me=`echo "$0" | sed -e 's,.*/,,'`
+-
+-usage="\
+-Usage: $0 [OPTION]
+-
+-Output the configuration name of the system \`$me' is run on.
+-
+-Operation modes:
+-  -h, --help         print this help, then exit
+-  -t, --time-stamp   print date of last modification, then exit
+-  -v, --version      print version number, then exit
+-
+-Report bugs and patches to <config-patches@gnu.org>."
+-
+-version="\
+-GNU config.guess ($timestamp)
+-
+-Originally written by Per Bothner.
+-Copyright 1992-2015 Free Software Foundation, Inc.
+-
+-This is free software; see the source for copying conditions.  There is NO
+-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+-
+-help="
+-Try \`$me --help' for more information."
+-
+-# Parse command line
+-while test $# -gt 0 ; do
+-  case $1 in
+-    --time-stamp | --time* | -t )
+-       echo "$timestamp" ; exit ;;
+-    --version | -v )
+-       echo "$version" ; exit ;;
+-    --help | --h* | -h )
+-       echo "$usage"; exit ;;
+-    -- )     # Stop option processing
+-       shift; break ;;
+-    - )	# Use stdin as input.
+-       break ;;
+-    -* )
+-       echo "$me: invalid option $1$help" >&2
+-       exit 1 ;;
+-    * )
+-       break ;;
+-  esac
+-done
+-
+-if test $# != 0; then
+-  echo "$me: too many arguments$help" >&2
+-  exit 1
+-fi
+-
+-trap 'exit 1' 1 2 15
+-
+-# CC_FOR_BUILD -- compiler used by this script. Note that the use of a
+-# compiler to aid in system detection is discouraged as it requires
+-# temporary files to be created and, as you can see below, it is a
+-# headache to deal with in a portable fashion.
+-
+-# Historically, `CC_FOR_BUILD' used to be named `HOST_CC'. We still
+-# use `HOST_CC' if defined, but it is deprecated.
+-
+-# Portable tmp directory creation inspired by the Autoconf team.
+-
+-set_cc_for_build='
+-trap "exitcode=\$?; (rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null) && exit \$exitcode" 0 ;
+-trap "rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null; exit 1" 1 2 13 15 ;
+-: ${TMPDIR=/tmp} ;
+- { tmp=`(umask 077 && mktemp -d "$TMPDIR/cgXXXXXX") 2>/dev/null` && test -n "$tmp" && test -d "$tmp" ; } ||
+- { test -n "$RANDOM" && tmp=$TMPDIR/cg$$-$RANDOM && (umask 077 && mkdir $tmp) ; } ||
+- { tmp=$TMPDIR/cg-$$ && (umask 077 && mkdir $tmp) && echo "Warning: creating insecure temp directory" >&2 ; } ||
+- { echo "$me: cannot create a temporary directory in $TMPDIR" >&2 ; exit 1 ; } ;
+-dummy=$tmp/dummy ;
+-tmpfiles="$dummy.c $dummy.o $dummy.rel $dummy" ;
+-case $CC_FOR_BUILD,$HOST_CC,$CC in
+- ,,)    echo "int x;" > $dummy.c ;
+-	for c in cc gcc c89 c99 ; do
+-	  if ($c -c -o $dummy.o $dummy.c) >/dev/null 2>&1 ; then
+-	     CC_FOR_BUILD="$c"; break ;
+-	  fi ;
+-	done ;
+-	if test x"$CC_FOR_BUILD" = x ; then
+-	  CC_FOR_BUILD=no_compiler_found ;
+-	fi
+-	;;
+- ,,*)   CC_FOR_BUILD=$CC ;;
+- ,*,*)  CC_FOR_BUILD=$HOST_CC ;;
+-esac ; set_cc_for_build= ;'
+-
+-# This is needed to find uname on a Pyramid OSx when run in the BSD universe.
+-# (ghazi@noc.rutgers.edu 1994-08-24)
+-if (test -f /.attbin/uname) >/dev/null 2>&1 ; then
+-	PATH=$PATH:/.attbin ; export PATH
+-fi
+-
+-UNAME_MACHINE=`(uname -m) 2>/dev/null` || UNAME_MACHINE=unknown
+-UNAME_RELEASE=`(uname -r) 2>/dev/null` || UNAME_RELEASE=unknown
+-UNAME_SYSTEM=`(uname -s) 2>/dev/null`  || UNAME_SYSTEM=unknown
+-UNAME_VERSION=`(uname -v) 2>/dev/null` || UNAME_VERSION=unknown
+-
+-case "${UNAME_SYSTEM}" in
+-Linux|GNU|GNU/*)
+-	# If the system lacks a compiler, then just pick glibc.
+-	# We could probably try harder.
+-	LIBC=gnu
+-
+-	eval $set_cc_for_build
+-	cat <<-EOF > $dummy.c
+-	#include <features.h>
+-	#if defined(__UCLIBC__)
+-	LIBC=uclibc
+-	#elif defined(__dietlibc__)
+-	LIBC=dietlibc
+-	#else
+-	LIBC=gnu
+-	#endif
+-	EOF
+-	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep '^LIBC' | sed 's, ,,g'`
+-	;;
+-esac
+-
+-# Note: order is significant - the case branches are not exclusive.
+-
+-case "${UNAME_MACHINE}:${UNAME_SYSTEM}:${UNAME_RELEASE}:${UNAME_VERSION}" in
+-    *:NetBSD:*:*)
+-	# NetBSD (nbsd) targets should (where applicable) match one or
+-	# more of the tuples: *-*-netbsdelf*, *-*-netbsdaout*,
+-	# *-*-netbsdecoff* and *-*-netbsd*.  For targets that recently
+-	# switched to ELF, *-*-netbsd* would select the old
+-	# object file format.  This provides both forward
+-	# compatibility and a consistent mechanism for selecting the
+-	# object file format.
+-	#
+-	# Note: NetBSD doesn't particularly care about the vendor
+-	# portion of the name.  We always set it to "unknown".
+-	sysctl="sysctl -n hw.machine_arch"
+-	UNAME_MACHINE_ARCH=`(uname -p 2>/dev/null || \
+-	    /sbin/$sysctl 2>/dev/null || \
+-	    /usr/sbin/$sysctl 2>/dev/null || \
+-	    echo unknown)`
+-	case "${UNAME_MACHINE_ARCH}" in
+-	    armeb) machine=armeb-unknown ;;
+-	    arm*) machine=arm-unknown ;;
+-	    sh3el) machine=shl-unknown ;;
+-	    sh3eb) machine=sh-unknown ;;
+-	    sh5el) machine=sh5le-unknown ;;
+-	    earmv*)
+-		arch=`echo ${UNAME_MACHINE_ARCH} | sed -e 's,^e\(armv[0-9]\).*$,\1,'`
+-		endian=`echo ${UNAME_MACHINE_ARCH} | sed -ne 's,^.*\(eb\)$,\1,p'`
+-		machine=${arch}${endian}-unknown
+-		;;
+-	    *) machine=${UNAME_MACHINE_ARCH}-unknown ;;
+-	esac
+-	# The Operating System including object format, if it has switched
+-	# to ELF recently, or will in the future.
+-	case "${UNAME_MACHINE_ARCH}" in
+-	    arm*|earm*|i386|m68k|ns32k|sh3*|sparc|vax)
+-		eval $set_cc_for_build
+-		if echo __ELF__ | $CC_FOR_BUILD -E - 2>/dev/null \
+-			| grep -q __ELF__
+-		then
+-		    # Once all utilities can be ECOFF (netbsdecoff) or a.out (netbsdaout).
+-		    # Return netbsd for either.  FIX?
+-		    os=netbsd
+-		else
+-		    os=netbsdelf
+-		fi
+-		;;
+-	    *)
+-		os=netbsd
+-		;;
+-	esac
+-	# Determine ABI tags.
+-	case "${UNAME_MACHINE_ARCH}" in
+-	    earm*)
+-		expr='s/^earmv[0-9]/-eabi/;s/eb$//'
+-		abi=`echo ${UNAME_MACHINE_ARCH} | sed -e "$expr"`
+-		;;
+-	esac
+-	# The OS release
+-	# Debian GNU/NetBSD machines have a different userland, and
+-	# thus, need a distinct triplet. However, they do not need
+-	# kernel version information, so it can be replaced with a
+-	# suitable tag, in the style of linux-gnu.
+-	case "${UNAME_VERSION}" in
+-	    Debian*)
+-		release='-gnu'
+-		;;
+-	    *)
+-		release=`echo ${UNAME_RELEASE} | sed -e 's/[-_].*//' | cut -d. -f1,2`
+-		;;
+-	esac
+-	# Since CPU_TYPE-MANUFACTURER-KERNEL-OPERATING_SYSTEM:
+-	# contains redundant information, the shorter form:
+-	# CPU_TYPE-MANUFACTURER-OPERATING_SYSTEM is used.
+-	echo "${machine}-${os}${release}${abi}"
+-	exit ;;
+-    *:Bitrig:*:*)
+-	UNAME_MACHINE_ARCH=`arch | sed 's/Bitrig.//'`
+-	echo ${UNAME_MACHINE_ARCH}-unknown-bitrig${UNAME_RELEASE}
+-	exit ;;
+-    *:OpenBSD:*:*)
+-	UNAME_MACHINE_ARCH=`arch | sed 's/OpenBSD.//'`
+-	echo ${UNAME_MACHINE_ARCH}-unknown-openbsd${UNAME_RELEASE}
+-	exit ;;
+-    *:ekkoBSD:*:*)
+-	echo ${UNAME_MACHINE}-unknown-ekkobsd${UNAME_RELEASE}
+-	exit ;;
+-    *:SolidBSD:*:*)
+-	echo ${UNAME_MACHINE}-unknown-solidbsd${UNAME_RELEASE}
+-	exit ;;
+-    macppc:MirBSD:*:*)
+-	echo powerpc-unknown-mirbsd${UNAME_RELEASE}
+-	exit ;;
+-    *:MirBSD:*:*)
+-	echo ${UNAME_MACHINE}-unknown-mirbsd${UNAME_RELEASE}
+-	exit ;;
+-    alpha:OSF1:*:*)
+-	case $UNAME_RELEASE in
+-	*4.0)
+-		UNAME_RELEASE=`/usr/sbin/sizer -v | awk '{print $3}'`
+-		;;
+-	*5.*)
+-		UNAME_RELEASE=`/usr/sbin/sizer -v | awk '{print $4}'`
+-		;;
+-	esac
+-	# According to Compaq, /usr/sbin/psrinfo has been available on
+-	# OSF/1 and Tru64 systems produced since 1995.  I hope that
+-	# covers most systems running today.  This code pipes the CPU
+-	# types through head -n 1, so we only detect the type of CPU 0.
+-	ALPHA_CPU_TYPE=`/usr/sbin/psrinfo -v | sed -n -e 's/^  The alpha \(.*\) processor.*$/\1/p' | head -n 1`
+-	case "$ALPHA_CPU_TYPE" in
+-	    "EV4 (21064)")
+-		UNAME_MACHINE="alpha" ;;
+-	    "EV4.5 (21064)")
+-		UNAME_MACHINE="alpha" ;;
+-	    "LCA4 (21066/21068)")
+-		UNAME_MACHINE="alpha" ;;
+-	    "EV5 (21164)")
+-		UNAME_MACHINE="alphaev5" ;;
+-	    "EV5.6 (21164A)")
+-		UNAME_MACHINE="alphaev56" ;;
+-	    "EV5.6 (21164PC)")
+-		UNAME_MACHINE="alphapca56" ;;
+-	    "EV5.7 (21164PC)")
+-		UNAME_MACHINE="alphapca57" ;;
+-	    "EV6 (21264)")
+-		UNAME_MACHINE="alphaev6" ;;
+-	    "EV6.7 (21264A)")
+-		UNAME_MACHINE="alphaev67" ;;
+-	    "EV6.8CB (21264C)")
+-		UNAME_MACHINE="alphaev68" ;;
+-	    "EV6.8AL (21264B)")
+-		UNAME_MACHINE="alphaev68" ;;
+-	    "EV6.8CX (21264D)")
+-		UNAME_MACHINE="alphaev68" ;;
+-	    "EV6.9A (21264/EV69A)")
+-		UNAME_MACHINE="alphaev69" ;;
+-	    "EV7 (21364)")
+-		UNAME_MACHINE="alphaev7" ;;
+-	    "EV7.9 (21364A)")
+-		UNAME_MACHINE="alphaev79" ;;
+-	esac
+-	# A Pn.n version is a patched version.
+-	# A Vn.n version is a released version.
+-	# A Tn.n version is a released field test version.
+-	# A Xn.n version is an unreleased experimental baselevel.
+-	# 1.2 uses "1.2" for uname -r.
+-	echo ${UNAME_MACHINE}-dec-osf`echo ${UNAME_RELEASE} | sed -e 's/^[PVTX]//' | tr 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'`
+-	# Reset EXIT trap before exiting to avoid spurious non-zero exit code.
+-	exitcode=$?
+-	trap '' 0
+-	exit $exitcode ;;
+-    Alpha\ *:Windows_NT*:*)
+-	# How do we know it's Interix rather than the generic POSIX subsystem?
+-	# Should we change UNAME_MACHINE based on the output of uname instead
+-	# of the specific Alpha model?
+-	echo alpha-pc-interix
+-	exit ;;
+-    21064:Windows_NT:50:3)
+-	echo alpha-dec-winnt3.5
+-	exit ;;
+-    Amiga*:UNIX_System_V:4.0:*)
+-	echo m68k-unknown-sysv4
+-	exit ;;
+-    *:[Aa]miga[Oo][Ss]:*:*)
+-	echo ${UNAME_MACHINE}-unknown-amigaos
+-	exit ;;
+-    *:[Mm]orph[Oo][Ss]:*:*)
+-	echo ${UNAME_MACHINE}-unknown-morphos
+-	exit ;;
+-    *:OS/390:*:*)
+-	echo i370-ibm-openedition
+-	exit ;;
+-    *:z/VM:*:*)
+-	echo s390-ibm-zvmoe
+-	exit ;;
+-    *:OS400:*:*)
+-	echo powerpc-ibm-os400
+-	exit ;;
+-    arm:RISC*:1.[012]*:*|arm:riscix:1.[012]*:*)
+-	echo arm-acorn-riscix${UNAME_RELEASE}
+-	exit ;;
+-    arm*:riscos:*:*|arm*:RISCOS:*:*)
+-	echo arm-unknown-riscos
+-	exit ;;
+-    SR2?01:HI-UX/MPP:*:* | SR8000:HI-UX/MPP:*:*)
+-	echo hppa1.1-hitachi-hiuxmpp
+-	exit ;;
+-    Pyramid*:OSx*:*:* | MIS*:OSx*:*:* | MIS*:SMP_DC-OSx*:*:*)
+-	# akee@wpdis03.wpafb.af.mil (Earle F. Ake) contributed MIS and NILE.
+-	if test "`(/bin/universe) 2>/dev/null`" = att ; then
+-		echo pyramid-pyramid-sysv3
+-	else
+-		echo pyramid-pyramid-bsd
+-	fi
+-	exit ;;
+-    NILE*:*:*:dcosx)
+-	echo pyramid-pyramid-svr4
+-	exit ;;
+-    DRS?6000:unix:4.0:6*)
+-	echo sparc-icl-nx6
+-	exit ;;
+-    DRS?6000:UNIX_SV:4.2*:7* | DRS?6000:isis:4.2*:7*)
+-	case `/usr/bin/uname -p` in
+-	    sparc) echo sparc-icl-nx7; exit ;;
+-	esac ;;
+-    s390x:SunOS:*:*)
+-	echo ${UNAME_MACHINE}-ibm-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
+-	exit ;;
+-    sun4H:SunOS:5.*:*)
+-	echo sparc-hal-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
+-	exit ;;
+-    sun4*:SunOS:5.*:* | tadpole*:SunOS:5.*:*)
+-	echo sparc-sun-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
+-	exit ;;
+-    i86pc:AuroraUX:5.*:* | i86xen:AuroraUX:5.*:*)
+-	echo i386-pc-auroraux${UNAME_RELEASE}
+-	exit ;;
+-    i86pc:SunOS:5.*:* | i86xen:SunOS:5.*:*)
+-	eval $set_cc_for_build
+-	SUN_ARCH="i386"
+-	# If there is a compiler, see if it is configured for 64-bit objects.
+-	# Note that the Sun cc does not turn __LP64__ into 1 like gcc does.
+-	# This test works for both compilers.
+-	if [ "$CC_FOR_BUILD" != 'no_compiler_found' ]; then
+-	    if (echo '#ifdef __amd64'; echo IS_64BIT_ARCH; echo '#endif') | \
+-		(CCOPTS= $CC_FOR_BUILD -E - 2>/dev/null) | \
+-		grep IS_64BIT_ARCH >/dev/null
+-	    then
+-		SUN_ARCH="x86_64"
+-	    fi
+-	fi
+-	echo ${SUN_ARCH}-pc-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
+-	exit ;;
+-    sun4*:SunOS:6*:*)
+-	# According to config.sub, this is the proper way to canonicalize
+-	# SunOS6.  Hard to guess exactly what SunOS6 will be like, but
+-	# it's likely to be more like Solaris than SunOS4.
+-	echo sparc-sun-solaris3`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
+-	exit ;;
+-    sun4*:SunOS:*:*)
+-	case "`/usr/bin/arch -k`" in
+-	    Series*|S4*)
+-		UNAME_RELEASE=`uname -v`
+-		;;
+-	esac
+-	# Japanese Language versions have a version number like `4.1.3-JL'.
+-	echo sparc-sun-sunos`echo ${UNAME_RELEASE}|sed -e 's/-/_/'`
+-	exit ;;
+-    sun3*:SunOS:*:*)
+-	echo m68k-sun-sunos${UNAME_RELEASE}
+-	exit ;;
+-    sun*:*:4.2BSD:*)
+-	UNAME_RELEASE=`(sed 1q /etc/motd | awk '{print substr($5,1,3)}') 2>/dev/null`
+-	test "x${UNAME_RELEASE}" = "x" && UNAME_RELEASE=3
+-	case "`/bin/arch`" in
+-	    sun3)
+-		echo m68k-sun-sunos${UNAME_RELEASE}
+-		;;
+-	    sun4)
+-		echo sparc-sun-sunos${UNAME_RELEASE}
+-		;;
+-	esac
+-	exit ;;
+-    aushp:SunOS:*:*)
+-	echo sparc-auspex-sunos${UNAME_RELEASE}
+-	exit ;;
+-    # The situation for MiNT is a little confusing.  The machine name
+-    # can be virtually everything (everything which is not
+-    # "atarist" or "atariste" at least should have a processor
+-    # > m68000).  The system name ranges from "MiNT" over "FreeMiNT"
+-    # to the lowercase version "mint" (or "freemint").  Finally
+-    # the system name "TOS" denotes a system which is actually not
+-    # MiNT.  But MiNT is downward compatible to TOS, so this should
+-    # be no problem.
+-    atarist[e]:*MiNT:*:* | atarist[e]:*mint:*:* | atarist[e]:*TOS:*:*)
+-	echo m68k-atari-mint${UNAME_RELEASE}
+-	exit ;;
+-    atari*:*MiNT:*:* | atari*:*mint:*:* | atarist[e]:*TOS:*:*)
+-	echo m68k-atari-mint${UNAME_RELEASE}
+-	exit ;;
+-    *falcon*:*MiNT:*:* | *falcon*:*mint:*:* | *falcon*:*TOS:*:*)
+-	echo m68k-atari-mint${UNAME_RELEASE}
+-	exit ;;
+-    milan*:*MiNT:*:* | milan*:*mint:*:* | *milan*:*TOS:*:*)
+-	echo m68k-milan-mint${UNAME_RELEASE}
+-	exit ;;
+-    hades*:*MiNT:*:* | hades*:*mint:*:* | *hades*:*TOS:*:*)
+-	echo m68k-hades-mint${UNAME_RELEASE}
+-	exit ;;
+-    *:*MiNT:*:* | *:*mint:*:* | *:*TOS:*:*)
+-	echo m68k-unknown-mint${UNAME_RELEASE}
+-	exit ;;
+-    m68k:machten:*:*)
+-	echo m68k-apple-machten${UNAME_RELEASE}
+-	exit ;;
+-    powerpc:machten:*:*)
+-	echo powerpc-apple-machten${UNAME_RELEASE}
+-	exit ;;
+-    RISC*:Mach:*:*)
+-	echo mips-dec-mach_bsd4.3
+-	exit ;;
+-    RISC*:ULTRIX:*:*)
+-	echo mips-dec-ultrix${UNAME_RELEASE}
+-	exit ;;
+-    VAX*:ULTRIX*:*:*)
+-	echo vax-dec-ultrix${UNAME_RELEASE}
+-	exit ;;
+-    2020:CLIX:*:* | 2430:CLIX:*:*)
+-	echo clipper-intergraph-clix${UNAME_RELEASE}
+-	exit ;;
+-    mips:*:*:UMIPS | mips:*:*:RISCos)
+-	eval $set_cc_for_build
+-	sed 's/^	//' << EOF >$dummy.c
+-#ifdef __cplusplus
+-#include <stdio.h>  /* for printf() prototype */
+-	int main (int argc, char *argv[]) {
+-#else
+-	int main (argc, argv) int argc; char *argv[]; {
+-#endif
+-	#if defined (host_mips) && defined (MIPSEB)
+-	#if defined (SYSTYPE_SYSV)
+-	  printf ("mips-mips-riscos%ssysv\n", argv[1]); exit (0);
+-	#endif
+-	#if defined (SYSTYPE_SVR4)
+-	  printf ("mips-mips-riscos%ssvr4\n", argv[1]); exit (0);
+-	#endif
+-	#if defined (SYSTYPE_BSD43) || defined(SYSTYPE_BSD)
+-	  printf ("mips-mips-riscos%sbsd\n", argv[1]); exit (0);
+-	#endif
+-	#endif
+-	  exit (-1);
+-	}
+-EOF
+-	$CC_FOR_BUILD -o $dummy $dummy.c &&
+-	  dummyarg=`echo "${UNAME_RELEASE}" | sed -n 's/\([0-9]*\).*/\1/p'` &&
+-	  SYSTEM_NAME=`$dummy $dummyarg` &&
+-	    { echo "$SYSTEM_NAME"; exit; }
+-	echo mips-mips-riscos${UNAME_RELEASE}
+-	exit ;;
+-    Motorola:PowerMAX_OS:*:*)
+-	echo powerpc-motorola-powermax
+-	exit ;;
+-    Motorola:*:4.3:PL8-*)
+-	echo powerpc-harris-powermax
+-	exit ;;
+-    Night_Hawk:*:*:PowerMAX_OS | Synergy:PowerMAX_OS:*:*)
+-	echo powerpc-harris-powermax
+-	exit ;;
+-    Night_Hawk:Power_UNIX:*:*)
+-	echo powerpc-harris-powerunix
+-	exit ;;
+-    m88k:CX/UX:7*:*)
+-	echo m88k-harris-cxux7
+-	exit ;;
+-    m88k:*:4*:R4*)
+-	echo m88k-motorola-sysv4
+-	exit ;;
+-    m88k:*:3*:R3*)
+-	echo m88k-motorola-sysv3
+-	exit ;;
+-    AViiON:dgux:*:*)
+-	# DG/UX returns AViiON for all architectures
+-	UNAME_PROCESSOR=`/usr/bin/uname -p`
+-	if [ $UNAME_PROCESSOR = mc88100 ] || [ $UNAME_PROCESSOR = mc88110 ]
+-	then
+-	    if [ ${TARGET_BINARY_INTERFACE}x = m88kdguxelfx ] || \
+-	       [ ${TARGET_BINARY_INTERFACE}x = x ]
+-	    then
+-		echo m88k-dg-dgux${UNAME_RELEASE}
+-	    else
+-		echo m88k-dg-dguxbcs${UNAME_RELEASE}
+-	    fi
+-	else
+-	    echo i586-dg-dgux${UNAME_RELEASE}
+-	fi
+-	exit ;;
+-    M88*:DolphinOS:*:*)	# DolphinOS (SVR3)
+-	echo m88k-dolphin-sysv3
+-	exit ;;
+-    M88*:*:R3*:*)
+-	# Delta 88k system running SVR3
+-	echo m88k-motorola-sysv3
+-	exit ;;
+-    XD88*:*:*:*) # Tektronix XD88 system running UTekV (SVR3)
+-	echo m88k-tektronix-sysv3
+-	exit ;;
+-    Tek43[0-9][0-9]:UTek:*:*) # Tektronix 4300 system running UTek (BSD)
+-	echo m68k-tektronix-bsd
+-	exit ;;
+-    *:IRIX*:*:*)
+-	echo mips-sgi-irix`echo ${UNAME_RELEASE}|sed -e 's/-/_/g'`
+-	exit ;;
+-    ????????:AIX?:[12].1:2)   # AIX 2.2.1 or AIX 2.1.1 is RT/PC AIX.
+-	echo romp-ibm-aix     # uname -m gives an 8 hex-code CPU id
+-	exit ;;               # Note that: echo "'`uname -s`'" gives 'AIX '
+-    i*86:AIX:*:*)
+-	echo i386-ibm-aix
+-	exit ;;
+-    ia64:AIX:*:*)
+-	if [ -x /usr/bin/oslevel ] ; then
+-		IBM_REV=`/usr/bin/oslevel`
+-	else
+-		IBM_REV=${UNAME_VERSION}.${UNAME_RELEASE}
+-	fi
+-	echo ${UNAME_MACHINE}-ibm-aix${IBM_REV}
+-	exit ;;
+-    *:AIX:2:3)
+-	if grep bos325 /usr/include/stdio.h >/dev/null 2>&1; then
+-		eval $set_cc_for_build
+-		sed 's/^		//' << EOF >$dummy.c
+-		#include <sys/systemcfg.h>
+-
+-		main()
+-			{
+-			if (!__power_pc())
+-				exit(1);
+-			puts("powerpc-ibm-aix3.2.5");
+-			exit(0);
+-			}
+-EOF
+-		if $CC_FOR_BUILD -o $dummy $dummy.c && SYSTEM_NAME=`$dummy`
+-		then
+-			echo "$SYSTEM_NAME"
+-		else
+-			echo rs6000-ibm-aix3.2.5
+-		fi
+-	elif grep bos324 /usr/include/stdio.h >/dev/null 2>&1; then
+-		echo rs6000-ibm-aix3.2.4
+-	else
+-		echo rs6000-ibm-aix3.2
+-	fi
+-	exit ;;
+-    *:AIX:*:[4567])
+-	IBM_CPU_ID=`/usr/sbin/lsdev -C -c processor -S available | sed 1q | awk '{ print $1 }'`
+-	if /usr/sbin/lsattr -El ${IBM_CPU_ID} | grep ' POWER' >/dev/null 2>&1; then
+-		IBM_ARCH=rs6000
+-	else
+-		IBM_ARCH=powerpc
+-	fi
+-	if [ -x /usr/bin/lslpp ] ; then
+-		IBM_REV=`/usr/bin/lslpp -Lqc bos.rte.libc |
+-			   awk -F: '{ print $3 }' | sed s/[0-9]*$/0/`
+-	else
+-		IBM_REV=${UNAME_VERSION}.${UNAME_RELEASE}
+-	fi
+-	echo ${IBM_ARCH}-ibm-aix${IBM_REV}
+-	exit ;;
+-    *:AIX:*:*)
+-	echo rs6000-ibm-aix
+-	exit ;;
+-    ibmrt:4.4BSD:*|romp-ibm:BSD:*)
+-	echo romp-ibm-bsd4.4
+-	exit ;;
+-    ibmrt:*BSD:*|romp-ibm:BSD:*)            # covers RT/PC BSD and
+-	echo romp-ibm-bsd${UNAME_RELEASE}   # 4.3 with uname added to
+-	exit ;;                             # report: romp-ibm BSD 4.3
+-    *:BOSX:*:*)
+-	echo rs6000-bull-bosx
+-	exit ;;
+-    DPX/2?00:B.O.S.:*:*)
+-	echo m68k-bull-sysv3
+-	exit ;;
+-    9000/[34]??:4.3bsd:1.*:*)
+-	echo m68k-hp-bsd
+-	exit ;;
+-    hp300:4.4BSD:*:* | 9000/[34]??:4.3bsd:2.*:*)
+-	echo m68k-hp-bsd4.4
+-	exit ;;
+-    9000/[34678]??:HP-UX:*:*)
+-	HPUX_REV=`echo ${UNAME_RELEASE}|sed -e 's/[^.]*.[0B]*//'`
+-	case "${UNAME_MACHINE}" in
+-	    9000/31? )            HP_ARCH=m68000 ;;
+-	    9000/[34]?? )         HP_ARCH=m68k ;;
+-	    9000/[678][0-9][0-9])
+-		if [ -x /usr/bin/getconf ]; then
+-		    sc_cpu_version=`/usr/bin/getconf SC_CPU_VERSION 2>/dev/null`
+-		    sc_kernel_bits=`/usr/bin/getconf SC_KERNEL_BITS 2>/dev/null`
+-		    case "${sc_cpu_version}" in
+-		      523) HP_ARCH="hppa1.0" ;; # CPU_PA_RISC1_0
+-		      528) HP_ARCH="hppa1.1" ;; # CPU_PA_RISC1_1
+-		      532)                      # CPU_PA_RISC2_0
+-			case "${sc_kernel_bits}" in
+-			  32) HP_ARCH="hppa2.0n" ;;
+-			  64) HP_ARCH="hppa2.0w" ;;
+-			  '') HP_ARCH="hppa2.0" ;;   # HP-UX 10.20
+-			esac ;;
+-		    esac
+-		fi
+-		if [ "${HP_ARCH}" = "" ]; then
+-		    eval $set_cc_for_build
+-		    sed 's/^		//' << EOF >$dummy.c
+-
+-		#define _HPUX_SOURCE
+-		#include <stdlib.h>
+-		#include <unistd.h>
+-
+-		int main ()
+-		{
+-		#if defined(_SC_KERNEL_BITS)
+-		    long bits = sysconf(_SC_KERNEL_BITS);
+-		#endif
+-		    long cpu  = sysconf (_SC_CPU_VERSION);
+-
+-		    switch (cpu)
+-			{
+-			case CPU_PA_RISC1_0: puts ("hppa1.0"); break;
+-			case CPU_PA_RISC1_1: puts ("hppa1.1"); break;
+-			case CPU_PA_RISC2_0:
+-		#if defined(_SC_KERNEL_BITS)
+-			    switch (bits)
+-				{
+-				case 64: puts ("hppa2.0w"); break;
+-				case 32: puts ("hppa2.0n"); break;
+-				default: puts ("hppa2.0"); break;
+-				} break;
+-		#else  /* !defined(_SC_KERNEL_BITS) */
+-			    puts ("hppa2.0"); break;
+-		#endif
+-			default: puts ("hppa1.0"); break;
+-			}
+-		    exit (0);
+-		}
+-EOF
+-		    (CCOPTS= $CC_FOR_BUILD -o $dummy $dummy.c 2>/dev/null) && HP_ARCH=`$dummy`
+-		    test -z "$HP_ARCH" && HP_ARCH=hppa
+-		fi ;;
+-	esac
+-	if [ ${HP_ARCH} = "hppa2.0w" ]
+-	then
+-	    eval $set_cc_for_build
+-
+-	    # hppa2.0w-hp-hpux* has a 64-bit kernel and a compiler generating
+-	    # 32-bit code.  hppa64-hp-hpux* has the same kernel and a compiler
+-	    # generating 64-bit code.  GNU and HP use different nomenclature:
+-	    #
+-	    # $ CC_FOR_BUILD=cc ./config.guess
+-	    # => hppa2.0w-hp-hpux11.23
+-	    # $ CC_FOR_BUILD="cc +DA2.0w" ./config.guess
+-	    # => hppa64-hp-hpux11.23
+-
+-	    if echo __LP64__ | (CCOPTS= $CC_FOR_BUILD -E - 2>/dev/null) |
+-		grep -q __LP64__
+-	    then
+-		HP_ARCH="hppa2.0w"
+-	    else
+-		HP_ARCH="hppa64"
+-	    fi
+-	fi
+-	echo ${HP_ARCH}-hp-hpux${HPUX_REV}
+-	exit ;;
+-    ia64:HP-UX:*:*)
+-	HPUX_REV=`echo ${UNAME_RELEASE}|sed -e 's/[^.]*.[0B]*//'`
+-	echo ia64-hp-hpux${HPUX_REV}
+-	exit ;;
+-    3050*:HI-UX:*:*)
+-	eval $set_cc_for_build
+-	sed 's/^	//' << EOF >$dummy.c
+-	#include <unistd.h>
+-	int
+-	main ()
+-	{
+-	  long cpu = sysconf (_SC_CPU_VERSION);
+-	  /* The order matters, because CPU_IS_HP_MC68K erroneously returns
+-	     true for CPU_PA_RISC1_0.  CPU_IS_PA_RISC returns correct
+-	     results, however.  */
+-	  if (CPU_IS_PA_RISC (cpu))
+-	    {
+-	      switch (cpu)
+-		{
+-		  case CPU_PA_RISC1_0: puts ("hppa1.0-hitachi-hiuxwe2"); break;
+-		  case CPU_PA_RISC1_1: puts ("hppa1.1-hitachi-hiuxwe2"); break;
+-		  case CPU_PA_RISC2_0: puts ("hppa2.0-hitachi-hiuxwe2"); break;
+-		  default: puts ("hppa-hitachi-hiuxwe2"); break;
+-		}
+-	    }
+-	  else if (CPU_IS_HP_MC68K (cpu))
+-	    puts ("m68k-hitachi-hiuxwe2");
+-	  else puts ("unknown-hitachi-hiuxwe2");
+-	  exit (0);
+-	}
+-EOF
+-	$CC_FOR_BUILD -o $dummy $dummy.c && SYSTEM_NAME=`$dummy` &&
+-		{ echo "$SYSTEM_NAME"; exit; }
+-	echo unknown-hitachi-hiuxwe2
+-	exit ;;
+-    9000/7??:4.3bsd:*:* | 9000/8?[79]:4.3bsd:*:* )
+-	echo hppa1.1-hp-bsd
+-	exit ;;
+-    9000/8??:4.3bsd:*:*)
+-	echo hppa1.0-hp-bsd
+-	exit ;;
+-    *9??*:MPE/iX:*:* | *3000*:MPE/iX:*:*)
+-	echo hppa1.0-hp-mpeix
+-	exit ;;
+-    hp7??:OSF1:*:* | hp8?[79]:OSF1:*:* )
+-	echo hppa1.1-hp-osf
+-	exit ;;
+-    hp8??:OSF1:*:*)
+-	echo hppa1.0-hp-osf
+-	exit ;;
+-    i*86:OSF1:*:*)
+-	if [ -x /usr/sbin/sysversion ] ; then
+-	    echo ${UNAME_MACHINE}-unknown-osf1mk
+-	else
+-	    echo ${UNAME_MACHINE}-unknown-osf1
+-	fi
+-	exit ;;
+-    parisc*:Lites*:*:*)
+-	echo hppa1.1-hp-lites
+-	exit ;;
+-    C1*:ConvexOS:*:* | convex:ConvexOS:C1*:*)
+-	echo c1-convex-bsd
+-	exit ;;
+-    C2*:ConvexOS:*:* | convex:ConvexOS:C2*:*)
+-	if getsysinfo -f scalar_acc
+-	then echo c32-convex-bsd
+-	else echo c2-convex-bsd
+-	fi
+-	exit ;;
+-    C34*:ConvexOS:*:* | convex:ConvexOS:C34*:*)
+-	echo c34-convex-bsd
+-	exit ;;
+-    C38*:ConvexOS:*:* | convex:ConvexOS:C38*:*)
+-	echo c38-convex-bsd
+-	exit ;;
+-    C4*:ConvexOS:*:* | convex:ConvexOS:C4*:*)
+-	echo c4-convex-bsd
+-	exit ;;
+-    CRAY*Y-MP:*:*:*)
+-	echo ymp-cray-unicos${UNAME_RELEASE} | sed -e 's/\.[^.]*$/.X/'
+-	exit ;;
+-    CRAY*[A-Z]90:*:*:*)
+-	echo ${UNAME_MACHINE}-cray-unicos${UNAME_RELEASE} \
+-	| sed -e 's/CRAY.*\([A-Z]90\)/\1/' \
+-	      -e y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/ \
+-	      -e 's/\.[^.]*$/.X/'
+-	exit ;;
+-    CRAY*TS:*:*:*)
+-	echo t90-cray-unicos${UNAME_RELEASE} | sed -e 's/\.[^.]*$/.X/'
+-	exit ;;
+-    CRAY*T3E:*:*:*)
+-	echo alphaev5-cray-unicosmk${UNAME_RELEASE} | sed -e 's/\.[^.]*$/.X/'
+-	exit ;;
+-    CRAY*SV1:*:*:*)
+-	echo sv1-cray-unicos${UNAME_RELEASE} | sed -e 's/\.[^.]*$/.X/'
+-	exit ;;
+-    *:UNICOS/mp:*:*)
+-	echo craynv-cray-unicosmp${UNAME_RELEASE} | sed -e 's/\.[^.]*$/.X/'
+-	exit ;;
+-    F30[01]:UNIX_System_V:*:* | F700:UNIX_System_V:*:*)
+-	FUJITSU_PROC=`uname -m | tr 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'`
+-	FUJITSU_SYS=`uname -p | tr 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz' | sed -e 's/\///'`
+-	FUJITSU_REL=`echo ${UNAME_RELEASE} | sed -e 's/ /_/'`
+-	echo "${FUJITSU_PROC}-fujitsu-${FUJITSU_SYS}${FUJITSU_REL}"
+-	exit ;;
+-    5000:UNIX_System_V:4.*:*)
+-	FUJITSU_SYS=`uname -p | tr 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz' | sed -e 's/\///'`
+-	FUJITSU_REL=`echo ${UNAME_RELEASE} | tr 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz' | sed -e 's/ /_/'`
+-	echo "sparc-fujitsu-${FUJITSU_SYS}${FUJITSU_REL}"
+-	exit ;;
+-    i*86:BSD/386:*:* | i*86:BSD/OS:*:* | *:Ascend\ Embedded/OS:*:*)
+-	echo ${UNAME_MACHINE}-pc-bsdi${UNAME_RELEASE}
+-	exit ;;
+-    sparc*:BSD/OS:*:*)
+-	echo sparc-unknown-bsdi${UNAME_RELEASE}
+-	exit ;;
+-    *:BSD/OS:*:*)
+-	echo ${UNAME_MACHINE}-unknown-bsdi${UNAME_RELEASE}
+-	exit ;;
+-    *:FreeBSD:*:*)
+-	UNAME_PROCESSOR=`/usr/bin/uname -p`
+-	case ${UNAME_PROCESSOR} in
+-	    amd64)
+-		echo x86_64-unknown-freebsd`echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'` ;;
+-	    *)
+-		echo ${UNAME_PROCESSOR}-unknown-freebsd`echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'` ;;
+-	esac
+-	exit ;;
+-    i*:CYGWIN*:*)
+-	echo ${UNAME_MACHINE}-pc-cygwin
+-	exit ;;
+-    *:MINGW64*:*)
+-	echo ${UNAME_MACHINE}-pc-mingw64
+-	exit ;;
+-    *:MINGW*:*)
+-	echo ${UNAME_MACHINE}-pc-mingw32
+-	exit ;;
+-    *:MSYS*:*)
+-	echo ${UNAME_MACHINE}-pc-msys
+-	exit ;;
+-    i*:windows32*:*)
+-	# uname -m includes "-pc" on this system.
+-	echo ${UNAME_MACHINE}-mingw32
+-	exit ;;
+-    i*:PW*:*)
+-	echo ${UNAME_MACHINE}-pc-pw32
+-	exit ;;
+-    *:Interix*:*)
+-	case ${UNAME_MACHINE} in
+-	    x86)
+-		echo i586-pc-interix${UNAME_RELEASE}
+-		exit ;;
+-	    authenticamd | genuineintel | EM64T)
+-		echo x86_64-unknown-interix${UNAME_RELEASE}
+-		exit ;;
+-	    IA64)
+-		echo ia64-unknown-interix${UNAME_RELEASE}
+-		exit ;;
+-	esac ;;
+-    [345]86:Windows_95:* | [345]86:Windows_98:* | [345]86:Windows_NT:*)
+-	echo i${UNAME_MACHINE}-pc-mks
+-	exit ;;
+-    8664:Windows_NT:*)
+-	echo x86_64-pc-mks
+-	exit ;;
+-    i*:Windows_NT*:* | Pentium*:Windows_NT*:*)
+-	# How do we know it's Interix rather than the generic POSIX subsystem?
+-	# It also conflicts with pre-2.0 versions of AT&T UWIN. Should we
+-	# UNAME_MACHINE based on the output of uname instead of i386?
+-	echo i586-pc-interix
+-	exit ;;
+-    i*:UWIN*:*)
+-	echo ${UNAME_MACHINE}-pc-uwin
+-	exit ;;
+-    amd64:CYGWIN*:*:* | x86_64:CYGWIN*:*:*)
+-	echo x86_64-unknown-cygwin
+-	exit ;;
+-    p*:CYGWIN*:*)
+-	echo powerpcle-unknown-cygwin
+-	exit ;;
+-    prep*:SunOS:5.*:*)
+-	echo powerpcle-unknown-solaris2`echo ${UNAME_RELEASE}|sed -e 's/[^.]*//'`
+-	exit ;;
+-    *:GNU:*:*)
+-	# the GNU system
+-	echo `echo ${UNAME_MACHINE}|sed -e 's,[-/].*$,,'`-unknown-${LIBC}`echo ${UNAME_RELEASE}|sed -e 's,/.*$,,'`
+-	exit ;;
+-    *:GNU/*:*:*)
+-	# other systems with GNU libc and userland
+-	echo ${UNAME_MACHINE}-unknown-`echo ${UNAME_SYSTEM} | sed 's,^[^/]*/,,' | tr '[A-Z]' '[a-z]'``echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'`-${LIBC}
+-	exit ;;
+-    i*86:Minix:*:*)
+-	echo ${UNAME_MACHINE}-pc-minix
+-	exit ;;
+-    aarch64:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    aarch64_be:Linux:*:*)
+-	UNAME_MACHINE=aarch64_be
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    alpha:Linux:*:*)
+-	case `sed -n '/^cpu model/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo` in
+-	  EV5)   UNAME_MACHINE=alphaev5 ;;
+-	  EV56)  UNAME_MACHINE=alphaev56 ;;
+-	  PCA56) UNAME_MACHINE=alphapca56 ;;
+-	  PCA57) UNAME_MACHINE=alphapca56 ;;
+-	  EV6)   UNAME_MACHINE=alphaev6 ;;
+-	  EV67)  UNAME_MACHINE=alphaev67 ;;
+-	  EV68*) UNAME_MACHINE=alphaev68 ;;
+-	esac
+-	objdump --private-headers /bin/sh | grep -q ld.so.1
+-	if test "$?" = 0 ; then LIBC="gnulibc1" ; fi
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    arc:Linux:*:* | arceb:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    arm*:Linux:*:*)
+-	eval $set_cc_for_build
+-	if echo __ARM_EABI__ | $CC_FOR_BUILD -E - 2>/dev/null \
+-	    | grep -q __ARM_EABI__
+-	then
+-	    echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	else
+-	    if echo __ARM_PCS_VFP | $CC_FOR_BUILD -E - 2>/dev/null \
+-		| grep -q __ARM_PCS_VFP
+-	    then
+-		echo ${UNAME_MACHINE}-unknown-linux-${LIBC}eabi
+-	    else
+-		echo ${UNAME_MACHINE}-unknown-linux-${LIBC}eabihf
+-	    fi
+-	fi
+-	exit ;;
+-    avr32*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    cris:Linux:*:*)
+-	echo ${UNAME_MACHINE}-axis-linux-${LIBC}
+-	exit ;;
+-    crisv32:Linux:*:*)
+-	echo ${UNAME_MACHINE}-axis-linux-${LIBC}
+-	exit ;;
+-    e2k:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    frv:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    hexagon:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    i*86:Linux:*:*)
+-	echo ${UNAME_MACHINE}-pc-linux-${LIBC}
+-	exit ;;
+-    ia64:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    m32r*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    m68*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    mips:Linux:*:* | mips64:Linux:*:*)
+-	eval $set_cc_for_build
+-	sed 's/^	//' << EOF >$dummy.c
+-	#undef CPU
+-	#undef ${UNAME_MACHINE}
+-	#undef ${UNAME_MACHINE}el
+-	#if defined(__MIPSEL__) || defined(__MIPSEL) || defined(_MIPSEL) || defined(MIPSEL)
+-	CPU=${UNAME_MACHINE}el
+-	#else
+-	#if defined(__MIPSEB__) || defined(__MIPSEB) || defined(_MIPSEB) || defined(MIPSEB)
+-	CPU=${UNAME_MACHINE}
+-	#else
+-	CPU=
+-	#endif
+-	#endif
+-EOF
+-	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep '^CPU'`
+-	test x"${CPU}" != x && { echo "${CPU}-unknown-linux-${LIBC}"; exit; }
+-	;;
+-    openrisc*:Linux:*:*)
+-	echo or1k-unknown-linux-${LIBC}
+-	exit ;;
+-    or32:Linux:*:* | or1k*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    padre:Linux:*:*)
+-	echo sparc-unknown-linux-${LIBC}
+-	exit ;;
+-    parisc64:Linux:*:* | hppa64:Linux:*:*)
+-	echo hppa64-unknown-linux-${LIBC}
+-	exit ;;
+-    parisc:Linux:*:* | hppa:Linux:*:*)
+-	# Look for CPU level
+-	case `grep '^cpu[^a-z]*:' /proc/cpuinfo 2>/dev/null | cut -d' ' -f2` in
+-	  PA7*) echo hppa1.1-unknown-linux-${LIBC} ;;
+-	  PA8*) echo hppa2.0-unknown-linux-${LIBC} ;;
+-	  *)    echo hppa-unknown-linux-${LIBC} ;;
+-	esac
+-	exit ;;
+-    ppc64:Linux:*:*)
+-	echo powerpc64-unknown-linux-${LIBC}
+-	exit ;;
+-    ppc:Linux:*:*)
+-	echo powerpc-unknown-linux-${LIBC}
+-	exit ;;
+-    ppc64le:Linux:*:*)
+-	echo powerpc64le-unknown-linux-${LIBC}
+-	exit ;;
+-    ppcle:Linux:*:*)
+-	echo powerpcle-unknown-linux-${LIBC}
+-	exit ;;
+-    s390:Linux:*:* | s390x:Linux:*:*)
+-	echo ${UNAME_MACHINE}-ibm-linux-${LIBC}
+-	exit ;;
+-    sh64*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    sh*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    sparc:Linux:*:* | sparc64:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    tile*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    vax:Linux:*:*)
+-	echo ${UNAME_MACHINE}-dec-linux-${LIBC}
+-	exit ;;
+-    x86_64:Linux:*:*)
+-	echo ${UNAME_MACHINE}-pc-linux-${LIBC}
+-	exit ;;
+-    xtensa*:Linux:*:*)
+-	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
+-	exit ;;
+-    i*86:DYNIX/ptx:4*:*)
+-	# ptx 4.0 does uname -s correctly, with DYNIX/ptx in there.
+-	# earlier versions are messed up and put the nodename in both
+-	# sysname and nodename.
+-	echo i386-sequent-sysv4
+-	exit ;;
+-    i*86:UNIX_SV:4.2MP:2.*)
+-	# Unixware is an offshoot of SVR4, but it has its own version
+-	# number series starting with 2...
+-	# I am not positive that other SVR4 systems won't match this,
+-	# I just have to hope.  -- rms.
+-	# Use sysv4.2uw... so that sysv4* matches it.
+-	echo ${UNAME_MACHINE}-pc-sysv4.2uw${UNAME_VERSION}
+-	exit ;;
+-    i*86:OS/2:*:*)
+-	# If we were able to find `uname', then EMX Unix compatibility
+-	# is probably installed.
+-	echo ${UNAME_MACHINE}-pc-os2-emx
+-	exit ;;
+-    i*86:XTS-300:*:STOP)
+-	echo ${UNAME_MACHINE}-unknown-stop
+-	exit ;;
+-    i*86:atheos:*:*)
+-	echo ${UNAME_MACHINE}-unknown-atheos
+-	exit ;;
+-    i*86:syllable:*:*)
+-	echo ${UNAME_MACHINE}-pc-syllable
+-	exit ;;
+-    i*86:LynxOS:2.*:* | i*86:LynxOS:3.[01]*:* | i*86:LynxOS:4.[02]*:*)
+-	echo i386-unknown-lynxos${UNAME_RELEASE}
+-	exit ;;
+-    i*86:*DOS:*:*)
+-	echo ${UNAME_MACHINE}-pc-msdosdjgpp
+-	exit ;;
+-    i*86:*:4.*:* | i*86:SYSTEM_V:4.*:*)
+-	UNAME_REL=`echo ${UNAME_RELEASE} | sed 's/\/MP$//'`
+-	if grep Novell /usr/include/link.h >/dev/null 2>/dev/null; then
+-		echo ${UNAME_MACHINE}-univel-sysv${UNAME_REL}
+-	else
+-		echo ${UNAME_MACHINE}-pc-sysv${UNAME_REL}
+-	fi
+-	exit ;;
+-    i*86:*:5:[678]*)
+-	# UnixWare 7.x, OpenUNIX and OpenServer 6.
+-	case `/bin/uname -X | grep "^Machine"` in
+-	    *486*)	     UNAME_MACHINE=i486 ;;
+-	    *Pentium)	     UNAME_MACHINE=i586 ;;
+-	    *Pent*|*Celeron) UNAME_MACHINE=i686 ;;
+-	esac
+-	echo ${UNAME_MACHINE}-unknown-sysv${UNAME_RELEASE}${UNAME_SYSTEM}${UNAME_VERSION}
+-	exit ;;
+-    i*86:*:3.2:*)
+-	if test -f /usr/options/cb.name; then
+-		UNAME_REL=`sed -n 's/.*Version //p' </usr/options/cb.name`
+-		echo ${UNAME_MACHINE}-pc-isc$UNAME_REL
+-	elif /bin/uname -X 2>/dev/null >/dev/null ; then
+-		UNAME_REL=`(/bin/uname -X|grep Release|sed -e 's/.*= //')`
+-		(/bin/uname -X|grep i80486 >/dev/null) && UNAME_MACHINE=i486
+-		(/bin/uname -X|grep '^Machine.*Pentium' >/dev/null) \
+-			&& UNAME_MACHINE=i586
+-		(/bin/uname -X|grep '^Machine.*Pent *II' >/dev/null) \
+-			&& UNAME_MACHINE=i686
+-		(/bin/uname -X|grep '^Machine.*Pentium Pro' >/dev/null) \
+-			&& UNAME_MACHINE=i686
+-		echo ${UNAME_MACHINE}-pc-sco$UNAME_REL
+-	else
+-		echo ${UNAME_MACHINE}-pc-sysv32
+-	fi
+-	exit ;;
+-    pc:*:*:*)
+-	# Left here for compatibility:
+-	# uname -m prints for DJGPP always 'pc', but it prints nothing about
+-	# the processor, so we play safe by assuming i586.
+-	# Note: whatever this is, it MUST be the same as what config.sub
+-	# prints for the "djgpp" host, or else GDB configury will decide that
+-	# this is a cross-build.
+-	echo i586-pc-msdosdjgpp
+-	exit ;;
+-    Intel:Mach:3*:*)
+-	echo i386-pc-mach3
+-	exit ;;
+-    paragon:*:*:*)
+-	echo i860-intel-osf1
+-	exit ;;
+-    i860:*:4.*:*) # i860-SVR4
+-	if grep Stardent /usr/include/sys/uadmin.h >/dev/null 2>&1 ; then
+-	  echo i860-stardent-sysv${UNAME_RELEASE} # Stardent Vistra i860-SVR4
+-	else # Add other i860-SVR4 vendors below as they are discovered.
+-	  echo i860-unknown-sysv${UNAME_RELEASE}  # Unknown i860-SVR4
+-	fi
+-	exit ;;
+-    mini*:CTIX:SYS*5:*)
+-	# "miniframe"
+-	echo m68010-convergent-sysv
+-	exit ;;
+-    mc68k:UNIX:SYSTEM5:3.51m)
+-	echo m68k-convergent-sysv
+-	exit ;;
+-    M680?0:D-NIX:5.3:*)
+-	echo m68k-diab-dnix
+-	exit ;;
+-    M68*:*:R3V[5678]*:*)
+-	test -r /sysV68 && { echo 'm68k-motorola-sysv'; exit; } ;;
+-    3[345]??:*:4.0:3.0 | 3[34]??A:*:4.0:3.0 | 3[34]??,*:*:4.0:3.0 | 3[34]??/*:*:4.0:3.0 | 4400:*:4.0:3.0 | 4850:*:4.0:3.0 | SKA40:*:4.0:3.0 | SDS2:*:4.0:3.0 | SHG2:*:4.0:3.0 | S7501*:*:4.0:3.0)
+-	OS_REL=''
+-	test -r /etc/.relid \
+-	&& OS_REL=.`sed -n 's/[^ ]* [^ ]* \([0-9][0-9]\).*/\1/p' < /etc/.relid`
+-	/bin/uname -p 2>/dev/null | grep 86 >/dev/null \
+-	  && { echo i486-ncr-sysv4.3${OS_REL}; exit; }
+-	/bin/uname -p 2>/dev/null | /bin/grep entium >/dev/null \
+-	  && { echo i586-ncr-sysv4.3${OS_REL}; exit; } ;;
+-    3[34]??:*:4.0:* | 3[34]??,*:*:4.0:*)
+-	/bin/uname -p 2>/dev/null | grep 86 >/dev/null \
+-	  && { echo i486-ncr-sysv4; exit; } ;;
+-    NCR*:*:4.2:* | MPRAS*:*:4.2:*)
+-	OS_REL='.3'
+-	test -r /etc/.relid \
+-	    && OS_REL=.`sed -n 's/[^ ]* [^ ]* \([0-9][0-9]\).*/\1/p' < /etc/.relid`
+-	/bin/uname -p 2>/dev/null | grep 86 >/dev/null \
+-	    && { echo i486-ncr-sysv4.3${OS_REL}; exit; }
+-	/bin/uname -p 2>/dev/null | /bin/grep entium >/dev/null \
+-	    && { echo i586-ncr-sysv4.3${OS_REL}; exit; }
+-	/bin/uname -p 2>/dev/null | /bin/grep pteron >/dev/null \
+-	    && { echo i586-ncr-sysv4.3${OS_REL}; exit; } ;;
+-    m68*:LynxOS:2.*:* | m68*:LynxOS:3.0*:*)
+-	echo m68k-unknown-lynxos${UNAME_RELEASE}
+-	exit ;;
+-    mc68030:UNIX_System_V:4.*:*)
+-	echo m68k-atari-sysv4
+-	exit ;;
+-    TSUNAMI:LynxOS:2.*:*)
+-	echo sparc-unknown-lynxos${UNAME_RELEASE}
+-	exit ;;
+-    rs6000:LynxOS:2.*:*)
+-	echo rs6000-unknown-lynxos${UNAME_RELEASE}
+-	exit ;;
+-    PowerPC:LynxOS:2.*:* | PowerPC:LynxOS:3.[01]*:* | PowerPC:LynxOS:4.[02]*:*)
+-	echo powerpc-unknown-lynxos${UNAME_RELEASE}
+-	exit ;;
+-    SM[BE]S:UNIX_SV:*:*)
+-	echo mips-dde-sysv${UNAME_RELEASE}
+-	exit ;;
+-    RM*:ReliantUNIX-*:*:*)
+-	echo mips-sni-sysv4
+-	exit ;;
+-    RM*:SINIX-*:*:*)
+-	echo mips-sni-sysv4
+-	exit ;;
+-    *:SINIX-*:*:*)
+-	if uname -p 2>/dev/null >/dev/null ; then
+-		UNAME_MACHINE=`(uname -p) 2>/dev/null`
+-		echo ${UNAME_MACHINE}-sni-sysv4
+-	else
+-		echo ns32k-sni-sysv
+-	fi
+-	exit ;;
+-    PENTIUM:*:4.0*:*)	# Unisys `ClearPath HMP IX 4000' SVR4/MP effort
+-			# says <Richard.M.Bartel@ccMail.Census.GOV>
+-	echo i586-unisys-sysv4
+-	exit ;;
+-    *:UNIX_System_V:4*:FTX*)
+-	# From Gerald Hewes <hewes@openmarket.com>.
+-	# How about differentiating between stratus architectures? -djm
+-	echo hppa1.1-stratus-sysv4
+-	exit ;;
+-    *:*:*:FTX*)
+-	# From seanf@swdc.stratus.com.
+-	echo i860-stratus-sysv4
+-	exit ;;
+-    i*86:VOS:*:*)
+-	# From Paul.Green@stratus.com.
+-	echo ${UNAME_MACHINE}-stratus-vos
+-	exit ;;
+-    *:VOS:*:*)
+-	# From Paul.Green@stratus.com.
+-	echo hppa1.1-stratus-vos
+-	exit ;;
+-    mc68*:A/UX:*:*)
+-	echo m68k-apple-aux${UNAME_RELEASE}
+-	exit ;;
+-    news*:NEWS-OS:6*:*)
+-	echo mips-sony-newsos6
+-	exit ;;
+-    R[34]000:*System_V*:*:* | R4000:UNIX_SYSV:*:* | R*000:UNIX_SV:*:*)
+-	if [ -d /usr/nec ]; then
+-		echo mips-nec-sysv${UNAME_RELEASE}
+-	else
+-		echo mips-unknown-sysv${UNAME_RELEASE}
+-	fi
+-	exit ;;
+-    BeBox:BeOS:*:*)	# BeOS running on hardware made by Be, PPC only.
+-	echo powerpc-be-beos
+-	exit ;;
+-    BeMac:BeOS:*:*)	# BeOS running on Mac or Mac clone, PPC only.
+-	echo powerpc-apple-beos
+-	exit ;;
+-    BePC:BeOS:*:*)	# BeOS running on Intel PC compatible.
+-	echo i586-pc-beos
+-	exit ;;
+-    BePC:Haiku:*:*)	# Haiku running on Intel PC compatible.
+-	echo i586-pc-haiku
+-	exit ;;
+-    x86_64:Haiku:*:*)
+-	echo x86_64-unknown-haiku
+-	exit ;;
+-    SX-4:SUPER-UX:*:*)
+-	echo sx4-nec-superux${UNAME_RELEASE}
+-	exit ;;
+-    SX-5:SUPER-UX:*:*)
+-	echo sx5-nec-superux${UNAME_RELEASE}
+-	exit ;;
+-    SX-6:SUPER-UX:*:*)
+-	echo sx6-nec-superux${UNAME_RELEASE}
+-	exit ;;
+-    SX-7:SUPER-UX:*:*)
+-	echo sx7-nec-superux${UNAME_RELEASE}
+-	exit ;;
+-    SX-8:SUPER-UX:*:*)
+-	echo sx8-nec-superux${UNAME_RELEASE}
+-	exit ;;
+-    SX-8R:SUPER-UX:*:*)
+-	echo sx8r-nec-superux${UNAME_RELEASE}
+-	exit ;;
+-    Power*:Rhapsody:*:*)
+-	echo powerpc-apple-rhapsody${UNAME_RELEASE}
+-	exit ;;
+-    *:Rhapsody:*:*)
+-	echo ${UNAME_MACHINE}-apple-rhapsody${UNAME_RELEASE}
+-	exit ;;
+-    *:Darwin:*:*)
+-	UNAME_PROCESSOR=`uname -p` || UNAME_PROCESSOR=unknown
+-	eval $set_cc_for_build
+-	if test "$UNAME_PROCESSOR" = unknown ; then
+-	    UNAME_PROCESSOR=powerpc
+-	fi
+-	if test `echo "$UNAME_RELEASE" | sed -e 's/\..*//'` -le 10 ; then
+-	    if [ "$CC_FOR_BUILD" != 'no_compiler_found' ]; then
+-		if (echo '#ifdef __LP64__'; echo IS_64BIT_ARCH; echo '#endif') | \
+-		    (CCOPTS= $CC_FOR_BUILD -E - 2>/dev/null) | \
+-		    grep IS_64BIT_ARCH >/dev/null
+-		then
+-		    case $UNAME_PROCESSOR in
+-			i386) UNAME_PROCESSOR=x86_64 ;;
+-			powerpc) UNAME_PROCESSOR=powerpc64 ;;
+-		    esac
+-		fi
+-	    fi
+-	elif test "$UNAME_PROCESSOR" = i386 ; then
+-	    # Avoid executing cc on OS X 10.9, as it ships with a stub
+-	    # that puts up a graphical alert prompting to install
+-	    # developer tools.  Any system running Mac OS X 10.7 or
+-	    # later (Darwin 11 and later) is required to have a 64-bit
+-	    # processor. This is not true of the ARM version of Darwin
+-	    # that Apple uses in portable devices.
+-	    UNAME_PROCESSOR=x86_64
+-	fi
+-	echo ${UNAME_PROCESSOR}-apple-darwin${UNAME_RELEASE}
+-	exit ;;
+-    *:procnto*:*:* | *:QNX:[0123456789]*:*)
+-	UNAME_PROCESSOR=`uname -p`
+-	if test "$UNAME_PROCESSOR" = "x86"; then
+-		UNAME_PROCESSOR=i386
+-		UNAME_MACHINE=pc
+-	fi
+-	echo ${UNAME_PROCESSOR}-${UNAME_MACHINE}-nto-qnx${UNAME_RELEASE}
+-	exit ;;
+-    *:QNX:*:4*)
+-	echo i386-pc-qnx
+-	exit ;;
+-    NEO-?:NONSTOP_KERNEL:*:*)
+-	echo neo-tandem-nsk${UNAME_RELEASE}
+-	exit ;;
+-    NSE-*:NONSTOP_KERNEL:*:*)
+-	echo nse-tandem-nsk${UNAME_RELEASE}
+-	exit ;;
+-    NSR-?:NONSTOP_KERNEL:*:*)
+-	echo nsr-tandem-nsk${UNAME_RELEASE}
+-	exit ;;
+-    *:NonStop-UX:*:*)
+-	echo mips-compaq-nonstopux
+-	exit ;;
+-    BS2000:POSIX*:*:*)
+-	echo bs2000-siemens-sysv
+-	exit ;;
+-    DS/*:UNIX_System_V:*:*)
+-	echo ${UNAME_MACHINE}-${UNAME_SYSTEM}-${UNAME_RELEASE}
+-	exit ;;
+-    *:Plan9:*:*)
+-	# "uname -m" is not consistent, so use $cputype instead. 386
+-	# is converted to i386 for consistency with other x86
+-	# operating systems.
+-	if test "$cputype" = "386"; then
+-	    UNAME_MACHINE=i386
+-	else
+-	    UNAME_MACHINE="$cputype"
+-	fi
+-	echo ${UNAME_MACHINE}-unknown-plan9
+-	exit ;;
+-    *:TOPS-10:*:*)
+-	echo pdp10-unknown-tops10
+-	exit ;;
+-    *:TENEX:*:*)
+-	echo pdp10-unknown-tenex
+-	exit ;;
+-    KS10:TOPS-20:*:* | KL10:TOPS-20:*:* | TYPE4:TOPS-20:*:*)
+-	echo pdp10-dec-tops20
+-	exit ;;
+-    XKL-1:TOPS-20:*:* | TYPE5:TOPS-20:*:*)
+-	echo pdp10-xkl-tops20
+-	exit ;;
+-    *:TOPS-20:*:*)
+-	echo pdp10-unknown-tops20
+-	exit ;;
+-    *:ITS:*:*)
+-	echo pdp10-unknown-its
+-	exit ;;
+-    SEI:*:*:SEIUX)
+-	echo mips-sei-seiux${UNAME_RELEASE}
+-	exit ;;
+-    *:DragonFly:*:*)
+-	echo ${UNAME_MACHINE}-unknown-dragonfly`echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'`
+-	exit ;;
+-    *:*VMS:*:*)
+-	UNAME_MACHINE=`(uname -p) 2>/dev/null`
+-	case "${UNAME_MACHINE}" in
+-	    A*) echo alpha-dec-vms ; exit ;;
+-	    I*) echo ia64-dec-vms ; exit ;;
+-	    V*) echo vax-dec-vms ; exit ;;
+-	esac ;;
+-    *:XENIX:*:SysV)
+-	echo i386-pc-xenix
+-	exit ;;
+-    i*86:skyos:*:*)
+-	echo ${UNAME_MACHINE}-pc-skyos`echo ${UNAME_RELEASE}` | sed -e 's/ .*$//'
+-	exit ;;
+-    i*86:rdos:*:*)
+-	echo ${UNAME_MACHINE}-pc-rdos
+-	exit ;;
+-    i*86:AROS:*:*)
+-	echo ${UNAME_MACHINE}-pc-aros
+-	exit ;;
+-    x86_64:VMkernel:*:*)
+-	echo ${UNAME_MACHINE}-unknown-esx
+-	exit ;;
+-esac
+-
+-cat >&2 <<EOF
+-$0: unable to guess system type
+-
+-This script, last modified $timestamp, has failed to recognize
+-the operating system you are using. It is advised that you
+-download the most up to date version of the config scripts from
+-
+-  http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD
+-and
+-  http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD
+-
+-If the version you run ($0) is already up to date, please
+-send the following data and any information you think might be
+-pertinent to <config-patches@gnu.org> in order to provide the needed
+-information to handle your system.
+-
+-config.guess timestamp = $timestamp
+-
+-uname -m = `(uname -m) 2>/dev/null || echo unknown`
+-uname -r = `(uname -r) 2>/dev/null || echo unknown`
+-uname -s = `(uname -s) 2>/dev/null || echo unknown`
+-uname -v = `(uname -v) 2>/dev/null || echo unknown`
+-
+-/usr/bin/uname -p = `(/usr/bin/uname -p) 2>/dev/null`
+-/bin/uname -X     = `(/bin/uname -X) 2>/dev/null`
+-
+-hostinfo               = `(hostinfo) 2>/dev/null`
+-/bin/universe          = `(/bin/universe) 2>/dev/null`
+-/usr/bin/arch -k       = `(/usr/bin/arch -k) 2>/dev/null`
+-/bin/arch              = `(/bin/arch) 2>/dev/null`
+-/usr/bin/oslevel       = `(/usr/bin/oslevel) 2>/dev/null`
+-/usr/convex/getsysinfo = `(/usr/convex/getsysinfo) 2>/dev/null`
+-
+-UNAME_MACHINE = ${UNAME_MACHINE}
+-UNAME_RELEASE = ${UNAME_RELEASE}
+-UNAME_SYSTEM  = ${UNAME_SYSTEM}
+-UNAME_VERSION = ${UNAME_VERSION}
+-EOF
+-
+-exit 1
+-
+-# Local variables:
+-# eval: (add-hook 'write-file-hooks 'time-stamp)
+-# time-stamp-start: "timestamp='"
+-# time-stamp-format: "%:y-%02m-%02d"
+-# time-stamp-end: "'"
+-# End:
+diff --git a/config.mk.in b/config.mk.in
+deleted file mode 100644
+index 9189ece..0000000
+--- a/config.mk.in
++++ /dev/null
+@@ -1,101 +0,0 @@
+-#-------------------------------------------------------------------------------
+-#	$Id: config.mk.in 227 2015-08-12 00:25:27Z pwessel $
+-#
+-#	Standard Makefile Macro Setup for GMTSAR
+-#
+-# Edit this file only, NOT the makefile itself.
+-#-------------------------------------------------------------------------------
+-# The purpose of this section is to contain common make macros
+-# that should be processed by every execution of that utility.
+-#-------------------------------------------------------------------------------
+-
+-# POSIX shell.  On some platforms it is not /bin/sh.
+-SHELL		= @SHELL@
+-
+-# Installation Directories:
+-PACKAGE_TARNAME = @PACKAGE_TARNAME@
+-GMTSARHOME	= @rootdir@
+-ORBITS_DIR	= @ORBITS_DIR@
+-TIFF_INC	= @TIFF_INC@
+-TIFF_LIB	= @TIFF_LIB@
+-LALIBS		= @LALIBS@
+-prefix          = @prefix@
+-exec_prefix     = @exec_prefix@
+-bindir		= $(DESTDIR)@bindir@
+-sharedir	= $(DESTDIR)@prefix@/share/gmtsar
+-
+-# GMTSAR version number
+-GMTSAR_VERSION = @PACKAGE_VERSION@
+-
+-# Compilers, if $CC not set in environment
+-CC		= @CC@
+-
+-# Preprocessing:
+-CPP		= @CPP@
+-CPPFLAGS	= $(INCLUDES) $(DEFINES) @CPPFLAGS@
+-HDF5_CPPFLAGS	= @HDF5_CPPFLAGS@
+-HDF5_LDFLAGS	= @HDF5_LDFLAGS@
+-
+-#-------------------------------------------------------------------------------
+-#	Math library specification 
+-#	(Will most of the time be -lm, on Solaris -lsunmath -lm)
+-#-------------------------------------------------------------------------------
+-#
+-LIBS		= @LIBS@
+-HDF5_LIBS	= @HDF5_LIBS@
+-#
+-#-------------------------------------------------------------------------------
+-#	Miscellaneous Standard Utilities
+-#-------------------------------------------------------------------------------
+-#
+-INSTALL		= @INSTALL@
+-AWK		= @AWK@
+-AR		= @AR@
+-RANLIB		= @RANLIB@
+-CSH		= @CSH@
+-LD		= @LD@
+-LN_S		= @LN_S@
+-GNUTAR		= @GNUTAR@
+-#
+-#-------------------------------------------------------------------------------
+-#	Required directives for GMT includes and library
+-#-------------------------------------------------------------------------------
+-GMT_INC		= @GMT_INC@
+-GMT_LIB		= @GMT_LIB@
+-#
+-#-------------------------------------------------------------------------------
+-#	Required directives for GMTSAR library
+-#-------------------------------------------------------------------------------
+-GMTSAR		= -L@rootdir@/gmtsar -lgmtsar
+-#
+-#-------------------------------------------------------------------------------
+-#	Compiler switches and linker flags
+-#-------------------------------------------------------------------------------
+-#
+-CFLAGS		= @CFLAGS@
+-LDFLAGS		= @LDFLAGS@
+-#
+-#-------------------------------------------------------------------------------
+-#	Shared library file extension. Examples:
+-#	Solaris, Linux, IRIX: so	HP: sl		Mac OS X: dylib
+-#	SL_VERSION is extension for versioned shared libraries. Examples:
+-#	Linux: so.<version>		Mac OS X: <version>.dylib
+-#	Set SL_VERSION = $(SL) to prevent the creation of versioned shared libraries
+-#-------------------------------------------------------------------------------
+-#
+-SL		= @SL@
+-SL_VERSION	= @SL_VERSION@
+-#
+-#-------------------------------------------------------------------------------
+-#	Set  LIBEXT = a      to create static libraries (default)
+-#	Set  LIBEXT = $(SL)  to create shared libraries (and set SL below)
+-#-------------------------------------------------------------------------------
+-#
+-LIBEXT		= @LIBEXT@
+-#-------------------------------------------------------------------------------
+-#	Linker switch for building shared libraries
+-#	SunOS: -G  HP-UX: -b  Linux,IRIX: -shared
+-#-------------------------------------------------------------------------------
+-#
+-LD_OPT		= @LD_OPT@
+-#-------------------------------------------------------------------------------
+diff --git a/config.sub b/config.sub
+deleted file mode 100644
+index c17d3d7..0000000
+--- a/config.sub
++++ /dev/null
+@@ -1,1812 +0,0 @@
+-#! /bin/sh
+-# Configuration validation subroutine script.
+-#   Copyright 1992-2015 Free Software Foundation, Inc.
+-
+-timestamp='2015-07-24'
+-
+-# This file is free software; you can redistribute it and/or modify it
+-# under the terms of the GNU General Public License as published by
+-# the Free Software Foundation; either version 3 of the License, or
+-# (at your option) any later version.
+-#
+-# This program is distributed in the hope that it will be useful, but
+-# WITHOUT ANY WARRANTY; without even the implied warranty of
+-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-# General Public License for more details.
+-#
+-# You should have received a copy of the GNU General Public License
+-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+-#
+-# As a special exception to the GNU General Public License, if you
+-# distribute this file as part of a program that contains a
+-# configuration script generated by Autoconf, you may include it under
+-# the same distribution terms that you use for the rest of that
+-# program.  This Exception is an additional permission under section 7
+-# of the GNU General Public License, version 3 ("GPLv3").
+-
+-
+-# Please send patches to <config-patches@gnu.org>.
+-#
+-# Configuration subroutine to validate and canonicalize a configuration type.
+-# Supply the specified configuration type as an argument.
+-# If it is invalid, we print an error message on stderr and exit with code 1.
+-# Otherwise, we print the canonical config type on stdout and succeed.
+-
+-# You can get the latest version of this script from:
+-# http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD
+-
+-# This file is supposed to be the same for all GNU packages
+-# and recognize all the CPU types, system types and aliases
+-# that are meaningful with *any* GNU software.
+-# Each package is responsible for reporting which valid configurations
+-# it does not support.  The user should be able to distinguish
+-# a failure to support a valid configuration from a meaningless
+-# configuration.
+-
+-# The goal of this file is to map all the various variations of a given
+-# machine specification into a single specification in the form:
+-#	CPU_TYPE-MANUFACTURER-OPERATING_SYSTEM
+-# or in some cases, the newer four-part form:
+-#	CPU_TYPE-MANUFACTURER-KERNEL-OPERATING_SYSTEM
+-# It is wrong to echo any other type of specification.
+-
+-me=`echo "$0" | sed -e 's,.*/,,'`
+-
+-usage="\
+-Usage: $0 [OPTION] CPU-MFR-OPSYS
+-       $0 [OPTION] ALIAS
+-
+-Canonicalize a configuration name.
+-
+-Operation modes:
+-  -h, --help         print this help, then exit
+-  -t, --time-stamp   print date of last modification, then exit
+-  -v, --version      print version number, then exit
+-
+-Report bugs and patches to <config-patches@gnu.org>."
+-
+-version="\
+-GNU config.sub ($timestamp)
+-
+-Copyright 1992-2015 Free Software Foundation, Inc.
+-
+-This is free software; see the source for copying conditions.  There is NO
+-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+-
+-help="
+-Try \`$me --help' for more information."
+-
+-# Parse command line
+-while test $# -gt 0 ; do
+-  case $1 in
+-    --time-stamp | --time* | -t )
+-       echo "$timestamp" ; exit ;;
+-    --version | -v )
+-       echo "$version" ; exit ;;
+-    --help | --h* | -h )
+-       echo "$usage"; exit ;;
+-    -- )     # Stop option processing
+-       shift; break ;;
+-    - )	# Use stdin as input.
+-       break ;;
+-    -* )
+-       echo "$me: invalid option $1$help"
+-       exit 1 ;;
+-
+-    *local*)
+-       # First pass through any local machine types.
+-       echo $1
+-       exit ;;
+-
+-    * )
+-       break ;;
+-  esac
+-done
+-
+-case $# in
+- 0) echo "$me: missing argument$help" >&2
+-    exit 1;;
+- 1) ;;
+- *) echo "$me: too many arguments$help" >&2
+-    exit 1;;
+-esac
+-
+-# Separate what the user gave into CPU-COMPANY and OS or KERNEL-OS (if any).
+-# Here we must recognize all the valid KERNEL-OS combinations.
+-maybe_os=`echo $1 | sed 's/^\(.*\)-\([^-]*-[^-]*\)$/\2/'`
+-case $maybe_os in
+-  nto-qnx* | linux-gnu* | linux-android* | linux-dietlibc | linux-newlib* | \
+-  linux-musl* | linux-uclibc* | uclinux-uclibc* | uclinux-gnu* | kfreebsd*-gnu* | \
+-  knetbsd*-gnu* | netbsd*-gnu* | netbsd*-eabi* | \
+-  kopensolaris*-gnu* | \
+-  storm-chaos* | os2-emx* | rtmk-nova*)
+-    os=-$maybe_os
+-    basic_machine=`echo $1 | sed 's/^\(.*\)-\([^-]*-[^-]*\)$/\1/'`
+-    ;;
+-  android-linux)
+-    os=-linux-android
+-    basic_machine=`echo $1 | sed 's/^\(.*\)-\([^-]*-[^-]*\)$/\1/'`-unknown
+-    ;;
+-  *)
+-    basic_machine=`echo $1 | sed 's/-[^-]*$//'`
+-    if [ $basic_machine != $1 ]
+-    then os=`echo $1 | sed 's/.*-/-/'`
+-    else os=; fi
+-    ;;
+-esac
+-
+-### Let's recognize common machines as not being operating systems so
+-### that things like config.sub decstation-3100 work.  We also
+-### recognize some manufacturers as not being operating systems, so we
+-### can provide default operating systems below.
+-case $os in
+-	-sun*os*)
+-		# Prevent following clause from handling this invalid input.
+-		;;
+-	-dec* | -mips* | -sequent* | -encore* | -pc532* | -sgi* | -sony* | \
+-	-att* | -7300* | -3300* | -delta* | -motorola* | -sun[234]* | \
+-	-unicom* | -ibm* | -next | -hp | -isi* | -apollo | -altos* | \
+-	-convergent* | -ncr* | -news | -32* | -3600* | -3100* | -hitachi* |\
+-	-c[123]* | -convex* | -sun | -crds | -omron* | -dg | -ultra | -tti* | \
+-	-harris | -dolphin | -highlevel | -gould | -cbm | -ns | -masscomp | \
+-	-apple | -axis | -knuth | -cray | -microblaze*)
+-		os=
+-		basic_machine=$1
+-		;;
+-	-bluegene*)
+-		os=-cnk
+-		;;
+-	-sim | -cisco | -oki | -wec | -winbond)
+-		os=
+-		basic_machine=$1
+-		;;
+-	-scout)
+-		;;
+-	-wrs)
+-		os=-vxworks
+-		basic_machine=$1
+-		;;
+-	-chorusos*)
+-		os=-chorusos
+-		basic_machine=$1
+-		;;
+-	-chorusrdb)
+-		os=-chorusrdb
+-		basic_machine=$1
+-		;;
+-	-hiux*)
+-		os=-hiuxwe2
+-		;;
+-	-sco6)
+-		os=-sco5v6
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-sco5)
+-		os=-sco3.2v5
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-sco4)
+-		os=-sco3.2v4
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-sco3.2.[4-9]*)
+-		os=`echo $os | sed -e 's/sco3.2./sco3.2v/'`
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-sco3.2v[4-9]*)
+-		# Don't forget version if it is 3.2v4 or newer.
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-sco5v6*)
+-		# Don't forget version if it is 3.2v4 or newer.
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-sco*)
+-		os=-sco3.2v2
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-udk*)
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-isc)
+-		os=-isc2.2
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-clix*)
+-		basic_machine=clipper-intergraph
+-		;;
+-	-isc*)
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
+-		;;
+-	-lynx*178)
+-		os=-lynxos178
+-		;;
+-	-lynx*5)
+-		os=-lynxos5
+-		;;
+-	-lynx*)
+-		os=-lynxos
+-		;;
+-	-ptx*)
+-		basic_machine=`echo $1 | sed -e 's/86-.*/86-sequent/'`
+-		;;
+-	-windowsnt*)
+-		os=`echo $os | sed -e 's/windowsnt/winnt/'`
+-		;;
+-	-psos*)
+-		os=-psos
+-		;;
+-	-mint | -mint[0-9]*)
+-		basic_machine=m68k-atari
+-		os=-mint
+-		;;
+-esac
+-
+-# Decode aliases for certain CPU-COMPANY combinations.
+-case $basic_machine in
+-	# Recognize the basic CPU types without company name.
+-	# Some are omitted here because they have special meanings below.
+-	1750a | 580 \
+-	| a29k \
+-	| aarch64 | aarch64_be \
+-	| alpha | alphaev[4-8] | alphaev56 | alphaev6[78] | alphapca5[67] \
+-	| alpha64 | alpha64ev[4-8] | alpha64ev56 | alpha64ev6[78] | alpha64pca5[67] \
+-	| am33_2.0 \
+-	| arc | arceb \
+-	| arm | arm[bl]e | arme[lb] | armv[2-8] | armv[3-8][lb] | armv7[arm] \
+-	| avr | avr32 \
+-	| ba \
+-	| be32 | be64 \
+-	| bfin \
+-	| c4x | c8051 | clipper \
+-	| d10v | d30v | dlx | dsp16xx \
+-	| e2k | epiphany \
+-	| fido | fr30 | frv | ft32 \
+-	| h8300 | h8500 | hppa | hppa1.[01] | hppa2.0 | hppa2.0[nw] | hppa64 \
+-	| hexagon \
+-	| i370 | i860 | i960 | ia64 \
+-	| ip2k | iq2000 \
+-	| k1om \
+-	| le32 | le64 \
+-	| lm32 \
+-	| m32c | m32r | m32rle | m68000 | m68k | m88k \
+-	| maxq | mb | microblaze | microblazeel | mcore | mep | metag \
+-	| mips | mipsbe | mipseb | mipsel | mipsle \
+-	| mips16 \
+-	| mips64 | mips64el \
+-	| mips64octeon | mips64octeonel \
+-	| mips64orion | mips64orionel \
+-	| mips64r5900 | mips64r5900el \
+-	| mips64vr | mips64vrel \
+-	| mips64vr4100 | mips64vr4100el \
+-	| mips64vr4300 | mips64vr4300el \
+-	| mips64vr5000 | mips64vr5000el \
+-	| mips64vr5900 | mips64vr5900el \
+-	| mipsisa32 | mipsisa32el \
+-	| mipsisa32r2 | mipsisa32r2el \
+-	| mipsisa32r6 | mipsisa32r6el \
+-	| mipsisa64 | mipsisa64el \
+-	| mipsisa64r2 | mipsisa64r2el \
+-	| mipsisa64r6 | mipsisa64r6el \
+-	| mipsisa64sb1 | mipsisa64sb1el \
+-	| mipsisa64sr71k | mipsisa64sr71kel \
+-	| mipsr5900 | mipsr5900el \
+-	| mipstx39 | mipstx39el \
+-	| mn10200 | mn10300 \
+-	| moxie \
+-	| mt \
+-	| msp430 \
+-	| nds32 | nds32le | nds32be \
+-	| nios | nios2 | nios2eb | nios2el \
+-	| ns16k | ns32k \
+-	| open8 | or1k | or1knd | or32 \
+-	| pdp10 | pdp11 | pj | pjl \
+-	| powerpc | powerpc64 | powerpc64le | powerpcle \
+-	| pyramid \
+-	| riscv32 | riscv64 \
+-	| rl78 | rx \
+-	| score \
+-	| sh | sh[1234] | sh[24]a | sh[24]aeb | sh[23]e | sh[34]eb | sheb | shbe | shle | sh[1234]le | sh3ele \
+-	| sh64 | sh64le \
+-	| sparc | sparc64 | sparc64b | sparc64v | sparc86x | sparclet | sparclite \
+-	| sparcv8 | sparcv9 | sparcv9b | sparcv9v \
+-	| spu \
+-	| tahoe | tic4x | tic54x | tic55x | tic6x | tic80 | tron \
+-	| ubicom32 \
+-	| v850 | v850e | v850e1 | v850e2 | v850es | v850e2v3 \
+-	| visium \
+-	| we32k \
+-	| x86 | xc16x | xstormy16 | xtensa \
+-	| z8k | z80)
+-		basic_machine=$basic_machine-unknown
+-		;;
+-	c54x)
+-		basic_machine=tic54x-unknown
+-		;;
+-	c55x)
+-		basic_machine=tic55x-unknown
+-		;;
+-	c6x)
+-		basic_machine=tic6x-unknown
+-		;;
+-	leon|leon[3-9])
+-		basic_machine=sparc-$basic_machine
+-		;;
+-	m6811 | m68hc11 | m6812 | m68hc12 | m68hcs12x | nvptx | picochip)
+-		basic_machine=$basic_machine-unknown
+-		os=-none
+-		;;
+-	m88110 | m680[12346]0 | m683?2 | m68360 | m5200 | v70 | w65 | z8k)
+-		;;
+-	ms1)
+-		basic_machine=mt-unknown
+-		;;
+-
+-	strongarm | thumb | xscale)
+-		basic_machine=arm-unknown
+-		;;
+-	xgate)
+-		basic_machine=$basic_machine-unknown
+-		os=-none
+-		;;
+-	xscaleeb)
+-		basic_machine=armeb-unknown
+-		;;
+-
+-	xscaleel)
+-		basic_machine=armel-unknown
+-		;;
+-
+-	# We use `pc' rather than `unknown'
+-	# because (1) that's what they normally are, and
+-	# (2) the word "unknown" tends to confuse beginning users.
+-	i*86 | x86_64)
+-	  basic_machine=$basic_machine-pc
+-	  ;;
+-	# Object if more than one company name word.
+-	*-*-*)
+-		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
+-		exit 1
+-		;;
+-	# Recognize the basic CPU types with company name.
+-	580-* \
+-	| a29k-* \
+-	| aarch64-* | aarch64_be-* \
+-	| alpha-* | alphaev[4-8]-* | alphaev56-* | alphaev6[78]-* \
+-	| alpha64-* | alpha64ev[4-8]-* | alpha64ev56-* | alpha64ev6[78]-* \
+-	| alphapca5[67]-* | alpha64pca5[67]-* | arc-* | arceb-* \
+-	| arm-*  | armbe-* | armle-* | armeb-* | armv*-* \
+-	| avr-* | avr32-* \
+-	| ba-* \
+-	| be32-* | be64-* \
+-	| bfin-* | bs2000-* \
+-	| c[123]* | c30-* | [cjt]90-* | c4x-* \
+-	| c8051-* | clipper-* | craynv-* | cydra-* \
+-	| d10v-* | d30v-* | dlx-* \
+-	| e2k-* | elxsi-* \
+-	| f30[01]-* | f700-* | fido-* | fr30-* | frv-* | fx80-* \
+-	| h8300-* | h8500-* \
+-	| hppa-* | hppa1.[01]-* | hppa2.0-* | hppa2.0[nw]-* | hppa64-* \
+-	| hexagon-* \
+-	| i*86-* | i860-* | i960-* | ia64-* \
+-	| ip2k-* | iq2000-* \
+-	| k1om-* \
+-	| le32-* | le64-* \
+-	| lm32-* \
+-	| m32c-* | m32r-* | m32rle-* \
+-	| m68000-* | m680[012346]0-* | m68360-* | m683?2-* | m68k-* \
+-	| m88110-* | m88k-* | maxq-* | mcore-* | metag-* \
+-	| microblaze-* | microblazeel-* \
+-	| mips-* | mipsbe-* | mipseb-* | mipsel-* | mipsle-* \
+-	| mips16-* \
+-	| mips64-* | mips64el-* \
+-	| mips64octeon-* | mips64octeonel-* \
+-	| mips64orion-* | mips64orionel-* \
+-	| mips64r5900-* | mips64r5900el-* \
+-	| mips64vr-* | mips64vrel-* \
+-	| mips64vr4100-* | mips64vr4100el-* \
+-	| mips64vr4300-* | mips64vr4300el-* \
+-	| mips64vr5000-* | mips64vr5000el-* \
+-	| mips64vr5900-* | mips64vr5900el-* \
+-	| mipsisa32-* | mipsisa32el-* \
+-	| mipsisa32r2-* | mipsisa32r2el-* \
+-	| mipsisa32r6-* | mipsisa32r6el-* \
+-	| mipsisa64-* | mipsisa64el-* \
+-	| mipsisa64r2-* | mipsisa64r2el-* \
+-	| mipsisa64r6-* | mipsisa64r6el-* \
+-	| mipsisa64sb1-* | mipsisa64sb1el-* \
+-	| mipsisa64sr71k-* | mipsisa64sr71kel-* \
+-	| mipsr5900-* | mipsr5900el-* \
+-	| mipstx39-* | mipstx39el-* \
+-	| mmix-* \
+-	| mt-* \
+-	| msp430-* \
+-	| nds32-* | nds32le-* | nds32be-* \
+-	| nios-* | nios2-* | nios2eb-* | nios2el-* \
+-	| none-* | np1-* | ns16k-* | ns32k-* \
+-	| open8-* \
+-	| or1k*-* \
+-	| orion-* \
+-	| pdp10-* | pdp11-* | pj-* | pjl-* | pn-* | power-* \
+-	| powerpc-* | powerpc64-* | powerpc64le-* | powerpcle-* \
+-	| pyramid-* \
+-	| rl78-* | romp-* | rs6000-* | rx-* \
+-	| sh-* | sh[1234]-* | sh[24]a-* | sh[24]aeb-* | sh[23]e-* | sh[34]eb-* | sheb-* | shbe-* \
+-	| shle-* | sh[1234]le-* | sh3ele-* | sh64-* | sh64le-* \
+-	| sparc-* | sparc64-* | sparc64b-* | sparc64v-* | sparc86x-* | sparclet-* \
+-	| sparclite-* \
+-	| sparcv8-* | sparcv9-* | sparcv9b-* | sparcv9v-* | sv1-* | sx*-* \
+-	| tahoe-* \
+-	| tic30-* | tic4x-* | tic54x-* | tic55x-* | tic6x-* | tic80-* \
+-	| tile*-* \
+-	| tron-* \
+-	| ubicom32-* \
+-	| v850-* | v850e-* | v850e1-* | v850es-* | v850e2-* | v850e2v3-* \
+-	| vax-* \
+-	| visium-* \
+-	| we32k-* \
+-	| x86-* | x86_64-* | xc16x-* | xps100-* \
+-	| xstormy16-* | xtensa*-* \
+-	| ymp-* \
+-	| z8k-* | z80-*)
+-		;;
+-	# Recognize the basic CPU types without company name, with glob match.
+-	xtensa*)
+-		basic_machine=$basic_machine-unknown
+-		;;
+-	# Recognize the various machine names and aliases which stand
+-	# for a CPU type and a company and sometimes even an OS.
+-	386bsd)
+-		basic_machine=i386-unknown
+-		os=-bsd
+-		;;
+-	3b1 | 7300 | 7300-att | att-7300 | pc7300 | safari | unixpc)
+-		basic_machine=m68000-att
+-		;;
+-	3b*)
+-		basic_machine=we32k-att
+-		;;
+-	a29khif)
+-		basic_machine=a29k-amd
+-		os=-udi
+-		;;
+-	abacus)
+-		basic_machine=abacus-unknown
+-		;;
+-	adobe68k)
+-		basic_machine=m68010-adobe
+-		os=-scout
+-		;;
+-	alliant | fx80)
+-		basic_machine=fx80-alliant
+-		;;
+-	altos | altos3068)
+-		basic_machine=m68k-altos
+-		;;
+-	am29k)
+-		basic_machine=a29k-none
+-		os=-bsd
+-		;;
+-	amd64)
+-		basic_machine=x86_64-pc
+-		;;
+-	amd64-*)
+-		basic_machine=x86_64-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	amdahl)
+-		basic_machine=580-amdahl
+-		os=-sysv
+-		;;
+-	amiga | amiga-*)
+-		basic_machine=m68k-unknown
+-		;;
+-	amigaos | amigados)
+-		basic_machine=m68k-unknown
+-		os=-amigaos
+-		;;
+-	amigaunix | amix)
+-		basic_machine=m68k-unknown
+-		os=-sysv4
+-		;;
+-	apollo68)
+-		basic_machine=m68k-apollo
+-		os=-sysv
+-		;;
+-	apollo68bsd)
+-		basic_machine=m68k-apollo
+-		os=-bsd
+-		;;
+-	aros)
+-		basic_machine=i386-pc
+-		os=-aros
+-		;;
+-        asmjs)
+-		basic_machine=asmjs-unknown
+-		;;
+-	aux)
+-		basic_machine=m68k-apple
+-		os=-aux
+-		;;
+-	balance)
+-		basic_machine=ns32k-sequent
+-		os=-dynix
+-		;;
+-	blackfin)
+-		basic_machine=bfin-unknown
+-		os=-linux
+-		;;
+-	blackfin-*)
+-		basic_machine=bfin-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		os=-linux
+-		;;
+-	bluegene*)
+-		basic_machine=powerpc-ibm
+-		os=-cnk
+-		;;
+-	c54x-*)
+-		basic_machine=tic54x-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	c55x-*)
+-		basic_machine=tic55x-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	c6x-*)
+-		basic_machine=tic6x-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	c90)
+-		basic_machine=c90-cray
+-		os=-unicos
+-		;;
+-	cegcc)
+-		basic_machine=arm-unknown
+-		os=-cegcc
+-		;;
+-	convex-c1)
+-		basic_machine=c1-convex
+-		os=-bsd
+-		;;
+-	convex-c2)
+-		basic_machine=c2-convex
+-		os=-bsd
+-		;;
+-	convex-c32)
+-		basic_machine=c32-convex
+-		os=-bsd
+-		;;
+-	convex-c34)
+-		basic_machine=c34-convex
+-		os=-bsd
+-		;;
+-	convex-c38)
+-		basic_machine=c38-convex
+-		os=-bsd
+-		;;
+-	cray | j90)
+-		basic_machine=j90-cray
+-		os=-unicos
+-		;;
+-	craynv)
+-		basic_machine=craynv-cray
+-		os=-unicosmp
+-		;;
+-	cr16 | cr16-*)
+-		basic_machine=cr16-unknown
+-		os=-elf
+-		;;
+-	crds | unos)
+-		basic_machine=m68k-crds
+-		;;
+-	crisv32 | crisv32-* | etraxfs*)
+-		basic_machine=crisv32-axis
+-		;;
+-	cris | cris-* | etrax*)
+-		basic_machine=cris-axis
+-		;;
+-	crx)
+-		basic_machine=crx-unknown
+-		os=-elf
+-		;;
+-	da30 | da30-*)
+-		basic_machine=m68k-da30
+-		;;
+-	decstation | decstation-3100 | pmax | pmax-* | pmin | dec3100 | decstatn)
+-		basic_machine=mips-dec
+-		;;
+-	decsystem10* | dec10*)
+-		basic_machine=pdp10-dec
+-		os=-tops10
+-		;;
+-	decsystem20* | dec20*)
+-		basic_machine=pdp10-dec
+-		os=-tops20
+-		;;
+-	delta | 3300 | motorola-3300 | motorola-delta \
+-	      | 3300-motorola | delta-motorola)
+-		basic_machine=m68k-motorola
+-		;;
+-	delta88)
+-		basic_machine=m88k-motorola
+-		os=-sysv3
+-		;;
+-	dicos)
+-		basic_machine=i686-pc
+-		os=-dicos
+-		;;
+-	djgpp)
+-		basic_machine=i586-pc
+-		os=-msdosdjgpp
+-		;;
+-	dpx20 | dpx20-*)
+-		basic_machine=rs6000-bull
+-		os=-bosx
+-		;;
+-	dpx2* | dpx2*-bull)
+-		basic_machine=m68k-bull
+-		os=-sysv3
+-		;;
+-	ebmon29k)
+-		basic_machine=a29k-amd
+-		os=-ebmon
+-		;;
+-	elxsi)
+-		basic_machine=elxsi-elxsi
+-		os=-bsd
+-		;;
+-	encore | umax | mmax)
+-		basic_machine=ns32k-encore
+-		;;
+-	es1800 | OSE68k | ose68k | ose | OSE)
+-		basic_machine=m68k-ericsson
+-		os=-ose
+-		;;
+-	fx2800)
+-		basic_machine=i860-alliant
+-		;;
+-	genix)
+-		basic_machine=ns32k-ns
+-		;;
+-	gmicro)
+-		basic_machine=tron-gmicro
+-		os=-sysv
+-		;;
+-	go32)
+-		basic_machine=i386-pc
+-		os=-go32
+-		;;
+-	h3050r* | hiux*)
+-		basic_machine=hppa1.1-hitachi
+-		os=-hiuxwe2
+-		;;
+-	h8300hms)
+-		basic_machine=h8300-hitachi
+-		os=-hms
+-		;;
+-	h8300xray)
+-		basic_machine=h8300-hitachi
+-		os=-xray
+-		;;
+-	h8500hms)
+-		basic_machine=h8500-hitachi
+-		os=-hms
+-		;;
+-	harris)
+-		basic_machine=m88k-harris
+-		os=-sysv3
+-		;;
+-	hp300-*)
+-		basic_machine=m68k-hp
+-		;;
+-	hp300bsd)
+-		basic_machine=m68k-hp
+-		os=-bsd
+-		;;
+-	hp300hpux)
+-		basic_machine=m68k-hp
+-		os=-hpux
+-		;;
+-	hp3k9[0-9][0-9] | hp9[0-9][0-9])
+-		basic_machine=hppa1.0-hp
+-		;;
+-	hp9k2[0-9][0-9] | hp9k31[0-9])
+-		basic_machine=m68000-hp
+-		;;
+-	hp9k3[2-9][0-9])
+-		basic_machine=m68k-hp
+-		;;
+-	hp9k6[0-9][0-9] | hp6[0-9][0-9])
+-		basic_machine=hppa1.0-hp
+-		;;
+-	hp9k7[0-79][0-9] | hp7[0-79][0-9])
+-		basic_machine=hppa1.1-hp
+-		;;
+-	hp9k78[0-9] | hp78[0-9])
+-		# FIXME: really hppa2.0-hp
+-		basic_machine=hppa1.1-hp
+-		;;
+-	hp9k8[67]1 | hp8[67]1 | hp9k80[24] | hp80[24] | hp9k8[78]9 | hp8[78]9 | hp9k893 | hp893)
+-		# FIXME: really hppa2.0-hp
+-		basic_machine=hppa1.1-hp
+-		;;
+-	hp9k8[0-9][13679] | hp8[0-9][13679])
+-		basic_machine=hppa1.1-hp
+-		;;
+-	hp9k8[0-9][0-9] | hp8[0-9][0-9])
+-		basic_machine=hppa1.0-hp
+-		;;
+-	hppa-next)
+-		os=-nextstep3
+-		;;
+-	hppaosf)
+-		basic_machine=hppa1.1-hp
+-		os=-osf
+-		;;
+-	hppro)
+-		basic_machine=hppa1.1-hp
+-		os=-proelf
+-		;;
+-	i370-ibm* | ibm*)
+-		basic_machine=i370-ibm
+-		;;
+-	i*86v32)
+-		basic_machine=`echo $1 | sed -e 's/86.*/86-pc/'`
+-		os=-sysv32
+-		;;
+-	i*86v4*)
+-		basic_machine=`echo $1 | sed -e 's/86.*/86-pc/'`
+-		os=-sysv4
+-		;;
+-	i*86v)
+-		basic_machine=`echo $1 | sed -e 's/86.*/86-pc/'`
+-		os=-sysv
+-		;;
+-	i*86sol2)
+-		basic_machine=`echo $1 | sed -e 's/86.*/86-pc/'`
+-		os=-solaris2
+-		;;
+-	i386mach)
+-		basic_machine=i386-mach
+-		os=-mach
+-		;;
+-	i386-vsta | vsta)
+-		basic_machine=i386-unknown
+-		os=-vsta
+-		;;
+-	iris | iris4d)
+-		basic_machine=mips-sgi
+-		case $os in
+-		    -irix*)
+-			;;
+-		    *)
+-			os=-irix4
+-			;;
+-		esac
+-		;;
+-	isi68 | isi)
+-		basic_machine=m68k-isi
+-		os=-sysv
+-		;;
+-	leon-*|leon[3-9]-*)
+-		basic_machine=sparc-`echo $basic_machine | sed 's/-.*//'`
+-		;;
+-	m68knommu)
+-		basic_machine=m68k-unknown
+-		os=-linux
+-		;;
+-	m68knommu-*)
+-		basic_machine=m68k-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		os=-linux
+-		;;
+-	m88k-omron*)
+-		basic_machine=m88k-omron
+-		;;
+-	magnum | m3230)
+-		basic_machine=mips-mips
+-		os=-sysv
+-		;;
+-	merlin)
+-		basic_machine=ns32k-utek
+-		os=-sysv
+-		;;
+-	microblaze*)
+-		basic_machine=microblaze-xilinx
+-		;;
+-	mingw64)
+-		basic_machine=x86_64-pc
+-		os=-mingw64
+-		;;
+-	mingw32)
+-		basic_machine=i686-pc
+-		os=-mingw32
+-		;;
+-	mingw32ce)
+-		basic_machine=arm-unknown
+-		os=-mingw32ce
+-		;;
+-	miniframe)
+-		basic_machine=m68000-convergent
+-		;;
+-	*mint | -mint[0-9]* | *MiNT | *MiNT[0-9]*)
+-		basic_machine=m68k-atari
+-		os=-mint
+-		;;
+-	mips3*-*)
+-		basic_machine=`echo $basic_machine | sed -e 's/mips3/mips64/'`
+-		;;
+-	mips3*)
+-		basic_machine=`echo $basic_machine | sed -e 's/mips3/mips64/'`-unknown
+-		;;
+-	monitor)
+-		basic_machine=m68k-rom68k
+-		os=-coff
+-		;;
+-	morphos)
+-		basic_machine=powerpc-unknown
+-		os=-morphos
+-		;;
+-	moxiebox)
+-		basic_machine=moxie-unknown
+-		os=-moxiebox
+-		;;
+-	msdos)
+-		basic_machine=i386-pc
+-		os=-msdos
+-		;;
+-	ms1-*)
+-		basic_machine=`echo $basic_machine | sed -e 's/ms1-/mt-/'`
+-		;;
+-	msys)
+-		basic_machine=i686-pc
+-		os=-msys
+-		;;
+-	mvs)
+-		basic_machine=i370-ibm
+-		os=-mvs
+-		;;
+-	nacl)
+-		basic_machine=le32-unknown
+-		os=-nacl
+-		;;
+-	ncr3000)
+-		basic_machine=i486-ncr
+-		os=-sysv4
+-		;;
+-	netbsd386)
+-		basic_machine=i386-unknown
+-		os=-netbsd
+-		;;
+-	netwinder)
+-		basic_machine=armv4l-rebel
+-		os=-linux
+-		;;
+-	news | news700 | news800 | news900)
+-		basic_machine=m68k-sony
+-		os=-newsos
+-		;;
+-	news1000)
+-		basic_machine=m68030-sony
+-		os=-newsos
+-		;;
+-	news-3600 | risc-news)
+-		basic_machine=mips-sony
+-		os=-newsos
+-		;;
+-	necv70)
+-		basic_machine=v70-nec
+-		os=-sysv
+-		;;
+-	next | m*-next )
+-		basic_machine=m68k-next
+-		case $os in
+-		    -nextstep* )
+-			;;
+-		    -ns2*)
+-		      os=-nextstep2
+-			;;
+-		    *)
+-		      os=-nextstep3
+-			;;
+-		esac
+-		;;
+-	nh3000)
+-		basic_machine=m68k-harris
+-		os=-cxux
+-		;;
+-	nh[45]000)
+-		basic_machine=m88k-harris
+-		os=-cxux
+-		;;
+-	nindy960)
+-		basic_machine=i960-intel
+-		os=-nindy
+-		;;
+-	mon960)
+-		basic_machine=i960-intel
+-		os=-mon960
+-		;;
+-	nonstopux)
+-		basic_machine=mips-compaq
+-		os=-nonstopux
+-		;;
+-	np1)
+-		basic_machine=np1-gould
+-		;;
+-	neo-tandem)
+-		basic_machine=neo-tandem
+-		;;
+-	nse-tandem)
+-		basic_machine=nse-tandem
+-		;;
+-	nsr-tandem)
+-		basic_machine=nsr-tandem
+-		;;
+-	op50n-* | op60c-*)
+-		basic_machine=hppa1.1-oki
+-		os=-proelf
+-		;;
+-	openrisc | openrisc-*)
+-		basic_machine=or32-unknown
+-		;;
+-	os400)
+-		basic_machine=powerpc-ibm
+-		os=-os400
+-		;;
+-	OSE68000 | ose68000)
+-		basic_machine=m68000-ericsson
+-		os=-ose
+-		;;
+-	os68k)
+-		basic_machine=m68k-none
+-		os=-os68k
+-		;;
+-	pa-hitachi)
+-		basic_machine=hppa1.1-hitachi
+-		os=-hiuxwe2
+-		;;
+-	paragon)
+-		basic_machine=i860-intel
+-		os=-osf
+-		;;
+-	parisc)
+-		basic_machine=hppa-unknown
+-		os=-linux
+-		;;
+-	parisc-*)
+-		basic_machine=hppa-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		os=-linux
+-		;;
+-	pbd)
+-		basic_machine=sparc-tti
+-		;;
+-	pbb)
+-		basic_machine=m68k-tti
+-		;;
+-	pc532 | pc532-*)
+-		basic_machine=ns32k-pc532
+-		;;
+-	pc98)
+-		basic_machine=i386-pc
+-		;;
+-	pc98-*)
+-		basic_machine=i386-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	pentium | p5 | k5 | k6 | nexgen | viac3)
+-		basic_machine=i586-pc
+-		;;
+-	pentiumpro | p6 | 6x86 | athlon | athlon_*)
+-		basic_machine=i686-pc
+-		;;
+-	pentiumii | pentium2 | pentiumiii | pentium3)
+-		basic_machine=i686-pc
+-		;;
+-	pentium4)
+-		basic_machine=i786-pc
+-		;;
+-	pentium-* | p5-* | k5-* | k6-* | nexgen-* | viac3-*)
+-		basic_machine=i586-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	pentiumpro-* | p6-* | 6x86-* | athlon-*)
+-		basic_machine=i686-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	pentiumii-* | pentium2-* | pentiumiii-* | pentium3-*)
+-		basic_machine=i686-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	pentium4-*)
+-		basic_machine=i786-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	pn)
+-		basic_machine=pn-gould
+-		;;
+-	power)	basic_machine=power-ibm
+-		;;
+-	ppc | ppcbe)	basic_machine=powerpc-unknown
+-		;;
+-	ppc-* | ppcbe-*)
+-		basic_machine=powerpc-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	ppcle | powerpclittle | ppc-le | powerpc-little)
+-		basic_machine=powerpcle-unknown
+-		;;
+-	ppcle-* | powerpclittle-*)
+-		basic_machine=powerpcle-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	ppc64)	basic_machine=powerpc64-unknown
+-		;;
+-	ppc64-*) basic_machine=powerpc64-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	ppc64le | powerpc64little | ppc64-le | powerpc64-little)
+-		basic_machine=powerpc64le-unknown
+-		;;
+-	ppc64le-* | powerpc64little-*)
+-		basic_machine=powerpc64le-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	ps2)
+-		basic_machine=i386-ibm
+-		;;
+-	pw32)
+-		basic_machine=i586-unknown
+-		os=-pw32
+-		;;
+-	rdos | rdos64)
+-		basic_machine=x86_64-pc
+-		os=-rdos
+-		;;
+-	rdos32)
+-		basic_machine=i386-pc
+-		os=-rdos
+-		;;
+-	rom68k)
+-		basic_machine=m68k-rom68k
+-		os=-coff
+-		;;
+-	rm[46]00)
+-		basic_machine=mips-siemens
+-		;;
+-	rtpc | rtpc-*)
+-		basic_machine=romp-ibm
+-		;;
+-	s390 | s390-*)
+-		basic_machine=s390-ibm
+-		;;
+-	s390x | s390x-*)
+-		basic_machine=s390x-ibm
+-		;;
+-	sa29200)
+-		basic_machine=a29k-amd
+-		os=-udi
+-		;;
+-	sb1)
+-		basic_machine=mipsisa64sb1-unknown
+-		;;
+-	sb1el)
+-		basic_machine=mipsisa64sb1el-unknown
+-		;;
+-	sde)
+-		basic_machine=mipsisa32-sde
+-		os=-elf
+-		;;
+-	sei)
+-		basic_machine=mips-sei
+-		os=-seiux
+-		;;
+-	sequent)
+-		basic_machine=i386-sequent
+-		;;
+-	sh)
+-		basic_machine=sh-hitachi
+-		os=-hms
+-		;;
+-	sh5el)
+-		basic_machine=sh5le-unknown
+-		;;
+-	sh64)
+-		basic_machine=sh64-unknown
+-		;;
+-	sparclite-wrs | simso-wrs)
+-		basic_machine=sparclite-wrs
+-		os=-vxworks
+-		;;
+-	sps7)
+-		basic_machine=m68k-bull
+-		os=-sysv2
+-		;;
+-	spur)
+-		basic_machine=spur-unknown
+-		;;
+-	st2000)
+-		basic_machine=m68k-tandem
+-		;;
+-	stratus)
+-		basic_machine=i860-stratus
+-		os=-sysv4
+-		;;
+-	strongarm-* | thumb-*)
+-		basic_machine=arm-`echo $basic_machine | sed 's/^[^-]*-//'`
+-		;;
+-	sun2)
+-		basic_machine=m68000-sun
+-		;;
+-	sun2os3)
+-		basic_machine=m68000-sun
+-		os=-sunos3
+-		;;
+-	sun2os4)
+-		basic_machine=m68000-sun
+-		os=-sunos4
+-		;;
+-	sun3os3)
+-		basic_machine=m68k-sun
+-		os=-sunos3
+-		;;
+-	sun3os4)
+-		basic_machine=m68k-sun
+-		os=-sunos4
+-		;;
+-	sun4os3)
+-		basic_machine=sparc-sun
+-		os=-sunos3
+-		;;
+-	sun4os4)
+-		basic_machine=sparc-sun
+-		os=-sunos4
+-		;;
+-	sun4sol2)
+-		basic_machine=sparc-sun
+-		os=-solaris2
+-		;;
+-	sun3 | sun3-*)
+-		basic_machine=m68k-sun
+-		;;
+-	sun4)
+-		basic_machine=sparc-sun
+-		;;
+-	sun386 | sun386i | roadrunner)
+-		basic_machine=i386-sun
+-		;;
+-	sv1)
+-		basic_machine=sv1-cray
+-		os=-unicos
+-		;;
+-	symmetry)
+-		basic_machine=i386-sequent
+-		os=-dynix
+-		;;
+-	t3e)
+-		basic_machine=alphaev5-cray
+-		os=-unicos
+-		;;
+-	t90)
+-		basic_machine=t90-cray
+-		os=-unicos
+-		;;
+-	tile*)
+-		basic_machine=$basic_machine-unknown
+-		os=-linux-gnu
+-		;;
+-	tx39)
+-		basic_machine=mipstx39-unknown
+-		;;
+-	tx39el)
+-		basic_machine=mipstx39el-unknown
+-		;;
+-	toad1)
+-		basic_machine=pdp10-xkl
+-		os=-tops20
+-		;;
+-	tower | tower-32)
+-		basic_machine=m68k-ncr
+-		;;
+-	tpf)
+-		basic_machine=s390x-ibm
+-		os=-tpf
+-		;;
+-	udi29k)
+-		basic_machine=a29k-amd
+-		os=-udi
+-		;;
+-	ultra3)
+-		basic_machine=a29k-nyu
+-		os=-sym1
+-		;;
+-	v810 | necv810)
+-		basic_machine=v810-nec
+-		os=-none
+-		;;
+-	vaxv)
+-		basic_machine=vax-dec
+-		os=-sysv
+-		;;
+-	vms)
+-		basic_machine=vax-dec
+-		os=-vms
+-		;;
+-	vpp*|vx|vx-*)
+-		basic_machine=f301-fujitsu
+-		;;
+-	vxworks960)
+-		basic_machine=i960-wrs
+-		os=-vxworks
+-		;;
+-	vxworks68)
+-		basic_machine=m68k-wrs
+-		os=-vxworks
+-		;;
+-	vxworks29k)
+-		basic_machine=a29k-wrs
+-		os=-vxworks
+-		;;
+-	w65*)
+-		basic_machine=w65-wdc
+-		os=-none
+-		;;
+-	w89k-*)
+-		basic_machine=hppa1.1-winbond
+-		os=-proelf
+-		;;
+-	xbox)
+-		basic_machine=i686-pc
+-		os=-mingw32
+-		;;
+-	xps | xps100)
+-		basic_machine=xps100-honeywell
+-		;;
+-	xscale-* | xscalee[bl]-*)
+-		basic_machine=`echo $basic_machine | sed 's/^xscale/arm/'`
+-		;;
+-	ymp)
+-		basic_machine=ymp-cray
+-		os=-unicos
+-		;;
+-	z8k-*-coff)
+-		basic_machine=z8k-unknown
+-		os=-sim
+-		;;
+-	z80-*-coff)
+-		basic_machine=z80-unknown
+-		os=-sim
+-		;;
+-	none)
+-		basic_machine=none-none
+-		os=-none
+-		;;
+-
+-# Here we handle the default manufacturer of certain CPU types.  It is in
+-# some cases the only manufacturer, in others, it is the most popular.
+-	w89k)
+-		basic_machine=hppa1.1-winbond
+-		;;
+-	op50n)
+-		basic_machine=hppa1.1-oki
+-		;;
+-	op60c)
+-		basic_machine=hppa1.1-oki
+-		;;
+-	romp)
+-		basic_machine=romp-ibm
+-		;;
+-	mmix)
+-		basic_machine=mmix-knuth
+-		;;
+-	rs6000)
+-		basic_machine=rs6000-ibm
+-		;;
+-	vax)
+-		basic_machine=vax-dec
+-		;;
+-	pdp10)
+-		# there are many clones, so DEC is not a safe bet
+-		basic_machine=pdp10-unknown
+-		;;
+-	pdp11)
+-		basic_machine=pdp11-dec
+-		;;
+-	we32k)
+-		basic_machine=we32k-att
+-		;;
+-	sh[1234] | sh[24]a | sh[24]aeb | sh[34]eb | sh[1234]le | sh[23]ele)
+-		basic_machine=sh-unknown
+-		;;
+-	sparc | sparcv8 | sparcv9 | sparcv9b | sparcv9v)
+-		basic_machine=sparc-sun
+-		;;
+-	cydra)
+-		basic_machine=cydra-cydrome
+-		;;
+-	orion)
+-		basic_machine=orion-highlevel
+-		;;
+-	orion105)
+-		basic_machine=clipper-highlevel
+-		;;
+-	mac | mpw | mac-mpw)
+-		basic_machine=m68k-apple
+-		;;
+-	pmac | pmac-mpw)
+-		basic_machine=powerpc-apple
+-		;;
+-	*-unknown)
+-		# Make sure to match an already-canonicalized machine name.
+-		;;
+-	*)
+-		echo Invalid configuration \`$1\': machine \`$basic_machine\' not recognized 1>&2
+-		exit 1
+-		;;
+-esac
+-
+-# Here we canonicalize certain aliases for manufacturers.
+-case $basic_machine in
+-	*-digital*)
+-		basic_machine=`echo $basic_machine | sed 's/digital.*/dec/'`
+-		;;
+-	*-commodore*)
+-		basic_machine=`echo $basic_machine | sed 's/commodore.*/cbm/'`
+-		;;
+-	*)
+-		;;
+-esac
+-
+-# Decode manufacturer-specific aliases for certain operating systems.
+-
+-if [ x"$os" != x"" ]
+-then
+-case $os in
+-	# First match some system type aliases
+-	# that might get confused with valid system types.
+-	# -solaris* is a basic system type, with this one exception.
+-	-auroraux)
+-		os=-auroraux
+-		;;
+-	-solaris1 | -solaris1.*)
+-		os=`echo $os | sed -e 's|solaris1|sunos4|'`
+-		;;
+-	-solaris)
+-		os=-solaris2
+-		;;
+-	-svr4*)
+-		os=-sysv4
+-		;;
+-	-unixware*)
+-		os=-sysv4.2uw
+-		;;
+-	-gnu/linux*)
+-		os=`echo $os | sed -e 's|gnu/linux|linux-gnu|'`
+-		;;
+-	# First accept the basic system types.
+-	# The portable systems comes first.
+-	# Each alternative MUST END IN A *, to match a version number.
+-	# -sysv* is not here because it comes later, after sysvr4.
+-	-gnu* | -bsd* | -mach* | -minix* | -genix* | -ultrix* | -irix* \
+-	      | -*vms* | -sco* | -esix* | -isc* | -aix* | -cnk* | -sunos | -sunos[34]*\
+-	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -auroraux* | -solaris* \
+-	      | -sym* | -kopensolaris* | -plan9* \
+-	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+-	      | -aos* | -aros* | -cloudabi* \
+-	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
+-	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
+-	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \
+-	      | -bitrig* | -openbsd* | -solidbsd* \
+-	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
+-	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
+-	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
+-	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+-	      | -chorusos* | -chorusrdb* | -cegcc* \
+-	      | -cygwin* | -msys* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
+-	      | -mingw32* | -mingw64* | -linux-gnu* | -linux-android* \
+-	      | -linux-newlib* | -linux-musl* | -linux-uclibc* \
+-	      | -uxpv* | -beos* | -mpeix* | -udk* | -moxiebox* \
+-	      | -interix* | -uwin* | -mks* | -rhapsody* | -darwin* | -opened* \
+-	      | -openstep* | -oskit* | -conix* | -pw32* | -nonstopux* \
+-	      | -storm-chaos* | -tops10* | -tenex* | -tops20* | -its* \
+-	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+-	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+-	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -es* | -tirtos*)
+-	# Remember, each alternative MUST END IN *, to match a version number.
+-		;;
+-	-qnx*)
+-		case $basic_machine in
+-		    x86-* | i*86-*)
+-			;;
+-		    *)
+-			os=-nto$os
+-			;;
+-		esac
+-		;;
+-	-nto-qnx*)
+-		;;
+-	-nto*)
+-		os=`echo $os | sed -e 's|nto|nto-qnx|'`
+-		;;
+-	-sim | -es1800* | -hms* | -xray | -os68k* | -none* | -v88r* \
+-	      | -windows* | -osx | -abug | -netware* | -os9* | -beos* | -haiku* \
+-	      | -macos* | -mpw* | -magic* | -mmixware* | -mon960* | -lnews*)
+-		;;
+-	-mac*)
+-		os=`echo $os | sed -e 's|mac|macos|'`
+-		;;
+-	-linux-dietlibc)
+-		os=-linux-dietlibc
+-		;;
+-	-linux*)
+-		os=`echo $os | sed -e 's|linux|linux-gnu|'`
+-		;;
+-	-sunos5*)
+-		os=`echo $os | sed -e 's|sunos5|solaris2|'`
+-		;;
+-	-sunos6*)
+-		os=`echo $os | sed -e 's|sunos6|solaris3|'`
+-		;;
+-	-opened*)
+-		os=-openedition
+-		;;
+-	-os400*)
+-		os=-os400
+-		;;
+-	-wince*)
+-		os=-wince
+-		;;
+-	-osfrose*)
+-		os=-osfrose
+-		;;
+-	-osf*)
+-		os=-osf
+-		;;
+-	-utek*)
+-		os=-bsd
+-		;;
+-	-dynix*)
+-		os=-bsd
+-		;;
+-	-acis*)
+-		os=-aos
+-		;;
+-	-atheos*)
+-		os=-atheos
+-		;;
+-	-syllable*)
+-		os=-syllable
+-		;;
+-	-386bsd)
+-		os=-bsd
+-		;;
+-	-ctix* | -uts*)
+-		os=-sysv
+-		;;
+-	-nova*)
+-		os=-rtmk-nova
+-		;;
+-	-ns2 )
+-		os=-nextstep2
+-		;;
+-	-nsk*)
+-		os=-nsk
+-		;;
+-	# Preserve the version number of sinix5.
+-	-sinix5.*)
+-		os=`echo $os | sed -e 's|sinix|sysv|'`
+-		;;
+-	-sinix*)
+-		os=-sysv4
+-		;;
+-	-tpf*)
+-		os=-tpf
+-		;;
+-	-triton*)
+-		os=-sysv3
+-		;;
+-	-oss*)
+-		os=-sysv3
+-		;;
+-	-svr4)
+-		os=-sysv4
+-		;;
+-	-svr3)
+-		os=-sysv3
+-		;;
+-	-sysvr4)
+-		os=-sysv4
+-		;;
+-	# This must come after -sysvr4.
+-	-sysv*)
+-		;;
+-	-ose*)
+-		os=-ose
+-		;;
+-	-es1800*)
+-		os=-ose
+-		;;
+-	-xenix)
+-		os=-xenix
+-		;;
+-	-*mint | -mint[0-9]* | -*MiNT | -MiNT[0-9]*)
+-		os=-mint
+-		;;
+-	-aros*)
+-		os=-aros
+-		;;
+-	-zvmoe)
+-		os=-zvmoe
+-		;;
+-	-dicos*)
+-		os=-dicos
+-		;;
+-	-nacl*)
+-		;;
+-	-none)
+-		;;
+-	*)
+-		# Get rid of the `-' at the beginning of $os.
+-		os=`echo $os | sed 's/[^-]*-//'`
+-		echo Invalid configuration \`$1\': system \`$os\' not recognized 1>&2
+-		exit 1
+-		;;
+-esac
+-else
+-
+-# Here we handle the default operating systems that come with various machines.
+-# The value should be what the vendor currently ships out the door with their
+-# machine or put another way, the most popular os provided with the machine.
+-
+-# Note that if you're going to try to match "-MANUFACTURER" here (say,
+-# "-sun"), then you have to tell the case statement up towards the top
+-# that MANUFACTURER isn't an operating system.  Otherwise, code above
+-# will signal an error saying that MANUFACTURER isn't an operating
+-# system, and we'll never get to this point.
+-
+-case $basic_machine in
+-	score-*)
+-		os=-elf
+-		;;
+-	spu-*)
+-		os=-elf
+-		;;
+-	*-acorn)
+-		os=-riscix1.2
+-		;;
+-	arm*-rebel)
+-		os=-linux
+-		;;
+-	arm*-semi)
+-		os=-aout
+-		;;
+-	c4x-* | tic4x-*)
+-		os=-coff
+-		;;
+-	c8051-*)
+-		os=-elf
+-		;;
+-	hexagon-*)
+-		os=-elf
+-		;;
+-	tic54x-*)
+-		os=-coff
+-		;;
+-	tic55x-*)
+-		os=-coff
+-		;;
+-	tic6x-*)
+-		os=-coff
+-		;;
+-	# This must come before the *-dec entry.
+-	pdp10-*)
+-		os=-tops20
+-		;;
+-	pdp11-*)
+-		os=-none
+-		;;
+-	*-dec | vax-*)
+-		os=-ultrix4.2
+-		;;
+-	m68*-apollo)
+-		os=-domain
+-		;;
+-	i386-sun)
+-		os=-sunos4.0.2
+-		;;
+-	m68000-sun)
+-		os=-sunos3
+-		;;
+-	m68*-cisco)
+-		os=-aout
+-		;;
+-	mep-*)
+-		os=-elf
+-		;;
+-	mips*-cisco)
+-		os=-elf
+-		;;
+-	mips*-*)
+-		os=-elf
+-		;;
+-	or32-*)
+-		os=-coff
+-		;;
+-	*-tti)	# must be before sparc entry or we get the wrong os.
+-		os=-sysv3
+-		;;
+-	sparc-* | *-sun)
+-		os=-sunos4.1.1
+-		;;
+-	*-be)
+-		os=-beos
+-		;;
+-	*-haiku)
+-		os=-haiku
+-		;;
+-	*-ibm)
+-		os=-aix
+-		;;
+-	*-knuth)
+-		os=-mmixware
+-		;;
+-	*-wec)
+-		os=-proelf
+-		;;
+-	*-winbond)
+-		os=-proelf
+-		;;
+-	*-oki)
+-		os=-proelf
+-		;;
+-	*-hp)
+-		os=-hpux
+-		;;
+-	*-hitachi)
+-		os=-hiux
+-		;;
+-	i860-* | *-att | *-ncr | *-altos | *-motorola | *-convergent)
+-		os=-sysv
+-		;;
+-	*-cbm)
+-		os=-amigaos
+-		;;
+-	*-dg)
+-		os=-dgux
+-		;;
+-	*-dolphin)
+-		os=-sysv3
+-		;;
+-	m68k-ccur)
+-		os=-rtu
+-		;;
+-	m88k-omron*)
+-		os=-luna
+-		;;
+-	*-next )
+-		os=-nextstep
+-		;;
+-	*-sequent)
+-		os=-ptx
+-		;;
+-	*-crds)
+-		os=-unos
+-		;;
+-	*-ns)
+-		os=-genix
+-		;;
+-	i370-*)
+-		os=-mvs
+-		;;
+-	*-next)
+-		os=-nextstep3
+-		;;
+-	*-gould)
+-		os=-sysv
+-		;;
+-	*-highlevel)
+-		os=-bsd
+-		;;
+-	*-encore)
+-		os=-bsd
+-		;;
+-	*-sgi)
+-		os=-irix
+-		;;
+-	*-siemens)
+-		os=-sysv4
+-		;;
+-	*-masscomp)
+-		os=-rtu
+-		;;
+-	f30[01]-fujitsu | f700-fujitsu)
+-		os=-uxpv
+-		;;
+-	*-rom68k)
+-		os=-coff
+-		;;
+-	*-*bug)
+-		os=-coff
+-		;;
+-	*-apple)
+-		os=-macos
+-		;;
+-	*-atari*)
+-		os=-mint
+-		;;
+-	*)
+-		os=-none
+-		;;
+-esac
+-fi
+-
+-# Here we handle the case where we know the os, and the CPU type, but not the
+-# manufacturer.  We pick the logical manufacturer.
+-vendor=unknown
+-case $basic_machine in
+-	*-unknown)
+-		case $os in
+-			-riscix*)
+-				vendor=acorn
+-				;;
+-			-sunos*)
+-				vendor=sun
+-				;;
+-			-cnk*|-aix*)
+-				vendor=ibm
+-				;;
+-			-beos*)
+-				vendor=be
+-				;;
+-			-hpux*)
+-				vendor=hp
+-				;;
+-			-mpeix*)
+-				vendor=hp
+-				;;
+-			-hiux*)
+-				vendor=hitachi
+-				;;
+-			-unos*)
+-				vendor=crds
+-				;;
+-			-dgux*)
+-				vendor=dg
+-				;;
+-			-luna*)
+-				vendor=omron
+-				;;
+-			-genix*)
+-				vendor=ns
+-				;;
+-			-mvs* | -opened*)
+-				vendor=ibm
+-				;;
+-			-os400*)
+-				vendor=ibm
+-				;;
+-			-ptx*)
+-				vendor=sequent
+-				;;
+-			-tpf*)
+-				vendor=ibm
+-				;;
+-			-vxsim* | -vxworks* | -windiss*)
+-				vendor=wrs
+-				;;
+-			-aux*)
+-				vendor=apple
+-				;;
+-			-hms*)
+-				vendor=hitachi
+-				;;
+-			-mpw* | -macos*)
+-				vendor=apple
+-				;;
+-			-*mint | -mint[0-9]* | -*MiNT | -MiNT[0-9]*)
+-				vendor=atari
+-				;;
+-			-vos*)
+-				vendor=stratus
+-				;;
+-		esac
+-		basic_machine=`echo $basic_machine | sed "s/unknown/$vendor/"`
+-		;;
+-esac
+-
+-echo $basic_machine$os
+-exit
+-
+-# Local variables:
+-# eval: (add-hook 'write-file-hooks 'time-stamp)
+-# time-stamp-start: "timestamp='"
+-# time-stamp-format: "%:y-%02m-%02d"
+-# time-stamp-end: "'"
+-# End:
+diff --git a/configure.ac b/configure.ac
+deleted file mode 100644
+index 805b030..0000000
+--- a/configure.ac
++++ /dev/null
+@@ -1,443 +0,0 @@
+-dnl -----------------------------------------------------------------
+-dnl	$Id: configure.ac 228 2015-08-12 00:37:33Z pwessel $
+-dnl
+-dnl     This program is free software; you can redistribute it and/or modify
+-dnl     it under the terms of the GNU General Public License as published by
+-dnl     the Free Software Foundation; version 2 of the License.
+-dnl
+-dnl     This program is distributed in the hope that it will be useful,
+-dnl     but WITHOUT ANY WARRANTY; without even the implied warranty of
+-dnl     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-dnl     GNU General Public License for more details.
+-dnl
+-dnl     Contact info: David Sandwell, Scripps IO, dsandwell@ucsd.edu
+-dnl ------------------------------------------------------------------
+-dnl
+-dnl Run GNU autoconf to produce a configure script from this input.
+-dnl ------------------------------------------------------------------
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Since GMTSAR requires GMT executables version >= 5 we insist GMT
+-dnl executables must be in the current path; otherwise abort.
+-dnl 
+-dnl We also need to gather the following information
+-dnl 1. Location of GMT include and library files
+-dnl 2. Location of ORBITS directory
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_INIT(GMTSAR, 5.5.0, gmtsar-l@ucsd.edu)
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl The remainder should need no editing
+-dnl ------------------------------------------------------------------
+-dnl
+-m4_include([ax_lapack.m4])
+-m4_include([ax_blas.m4])
+-m4_include([ax_lib_hdf5.m4])
+-AC_CONFIG_SRCDIR(gmtsar/xcorr.c)
+-AC_CONFIG_AUX_DIR(`pwd`)
+-AC_CYGWIN
+-AC_CANONICAL_SYSTEM
+-AC_LANG_C
+-AC_PROG_CC
+-AC_PROG_CPP
+-AC_PREFIX_DEFAULT(`pwd`)
+-AC_PATH_XTRA
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl GMTSAR-specific make macros
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_SUBST(ORBITS_DIR)
+-AC_SUBST(LALIBS)
+-AC_SUBST(CFLAGS)
+-AC_SUBST(CPPFLAGS)
+-AC_SUBST(HDF5_CPPFLAGS)
+-AC_SUBST(HDF5_LDFLAGS)
+-AC_SUBST(HDF5_LIBS)
+-AC_SUBST(LD_OPT)
+-AC_SUBST(LDFLAGS)
+-AC_SUBST(GMT_LIB)
+-AC_SUBST(GMT_INC)
+-AC_SUBST(TIFF_LIB)
+-AC_SUBST(TIFF_INC)
+-AC_SUBST(LIBS)
+-AC_SUBST(LIBEXT)
+-AC_SUBST(SL)
+-AC_SUBST(SL_VERSION)
+-AC_SUBST(MT)
+-AC_SUBST(exec_prefix)
+-AC_SUBST(prefix)
+-AC_SUBST(rootdir)
+-AC_SUBST(bindir)
+-AC_SUBST(GMTSAR_VERSION)
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Special configure options for GMTSAR installation
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_ARG_WITH(orbits_dir,    [  --with-orbits-dir=      Full path to ORBITS directory[[auto]]], [], [with_orbits_dir=no])
+-AC_ARG_WITH(tiff_include,  [  --with-tiff-include=    Full path to tiff include directory [[auto]]])
+-AC_ARG_WITH(tiff_lib,      [  --with-tiff-lib=        Full path to tiff lib directory [[auto]]])
+-AC_ARG_WITH(gmt_config,    [  --with-gmt-config=      Full path to gmt-config [[auto]]])
+-AC_ARG_ENABLE(debug,       [  --enable-debug          Compile for debugging instead of optimizing code])
+-AC_ARG_ENABLE(rpath,	   [  --disable-rpath         Do not hardcode runtime library paths])
+-AC_ARG_ENABLE(shared,      [  --enable-shared         Build shared (dynamic) GMTSAR libraries instead of static])
+-AC_ARG_VAR(GMT_INC,Location of GMT headers (compile-time))
+-AC_ARG_VAR(GMT_LIB,Location of GMT library (compile-time))
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Check for ar, csh/bash, ld, awk, and ranlib
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_CHECK_PROG(GMT_in_path, gmtvector, 1, 0)
+-if test "$GMT_in_path" = "X0" ; then
+-	AC_MSG_RESULT(GMT v5 or later executables are not in your path - aborting)
+-	exit 1
+-fi
+-AC_CHECK_PROGS(PAGER, less more, cat)
+-AC_CHECK_PROG(AR, ar, ar, :)
+-AC_CHECK_PROG(CSH, csh, csh, bash, )
+-AC_CHECK_PROG(LD, ld, ld, :)
+-AC_CHECK_PROG(GNUTAR, gnutar, gnutar, :)
+-AC_PROG_LN_S
+-AC_PROG_INSTALL
+-AC_PROG_AWK
+-AC_PROG_RANLIB
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Get current OS and chip type and set LAPACK
+-dnl ------------------------------------------------------------------
+-dnl
+-os=`uname -s`
+-AC_MSG_CHECKING(for LAPACK library)
+-if test "X$os" = "XDarwin" ; then
+-	MT="-mt"
+-	osr=`uname -r | cut -d. -f1`
+-	LALIBS="-framework Accelerate"
+-else
+-	MT=""
+-	AX_LAPACK
+-	LALIBS="$LAPACK_LIBS $BLAS_LIBS"
+-fi
+-AC_MSG_RESULT($LALIBS)
+-chip=`uname -p`
+-Sun_rev=`uname -r | grep '^5.'`
+-rootdir=`pwd`
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Check for libraries.  Most installs will need to have
+-dnl -lm but under OS X it is not needed.  Thus, we look
+-dnl for sin in -lm which should set -lm on most platforms.
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_SEARCH_LIBS(sin, m)
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Set path to Orbits directory with --with-orbits=dir
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(for ORBITS directory)
+-if test "X$with_orbits_dir" = "Xyes"; then
+-	ORBITS_DIR=$rootdir
+-	AC_MSG_RESULT([Not specified, default to $ORBITS_DIR])
+-elif test "X$with_orbits_dir" = "Xno"; then
+-	ORBITS_DIR=$rootdir
+-	AC_MSG_RESULT([Not specified, default to $ORBITS_DIR])
+-else
+-	ORBITS_DIR=$with_orbits_dir
+-	AC_MSG_RESULT($ORBITS_DIR)
+-fi
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Set the HDF5 include and lib stuff
+-dnl ------------------------------------------------------------------
+-AX_LIB_HDF5()
+-HDF5_LIBS="$HDF5_LIBS -lhdf5_cpp"	# Add the C++ library
+-AC_MSG_CHECKING(for HDF5 include)
+-AC_MSG_RESULT($HDF5_CPPFLAGS)
+-AC_MSG_CHECKING(for HDF5 libs)
+-AC_MSG_RESULT([$HDF5_LDFLAGS $HDF5_LIBS])
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Set path to tiff directories with --with-tiff=include|lib
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(for TIFF include directory)
+-if test "X$with_TIFF_include" = "X"; then	# Must look for it in standard places
+-	if [ test -d /sw/include ]; then	# fink
+-		TIFF_INC=/sw/include
+-	elif [ test -d /opt/local/include ]; then	# macports
+-		TIFF_INC=/opt/local/include
+-	elif [ test -d /usr/local/include ]; then
+-		TIFF_INC=/usr/local/include
+-	elif [ test -d /usr/include ]; then	# Ubuntu
+-		TIFF_INC=/usr/include
+-	elif [ test -d /opt/csw/include ]; then	# Blastwave
+-		TIFF_INC=/opt/csw/include
+-	elif [ test -d /opt/include ]; then
+-		TIFF_INC=/opt/include
+-	fi
+-else
+-	TIFF_INC=$with_tiff_include
+-fi
+-AC_MSG_RESULT($TIFF_INC)
+-AC_MSG_CHECKING(for TIFF library directory)
+-if test "X$with_tiff_lib" = "X"; then	# Must look for it in standard places
+-	if [ test -d /sw/include ]; then	# fink
+-		TIFF_LIB=/sw/lib
+-	elif [ test -d /opt/local/include ]; then	# macports
+-		TIFF_LIB=/opt/local/lib
+-	elif [ test -d /usr/local/include ]; then
+-		TIFF_LIB=/usr/local/lib
+-	elif [ test -d /usr/include ]; then	# Ubuntu
+-		TIFF_LIB=/usr/lib/x86_64-linux-gnu
+-	elif [ test -d /opt/csw/include ]; then	# Blastwave
+-		TIFF_LIB=/opt/csw/lib
+-	elif [ test -d /opt/include ]; then
+-		TIFF_LIB=/opt/lib
+-	fi
+-else
+-	TIFF_LIB=$with_tiff_lib/lib
+-fi
+-AC_MSG_RESULT($TIFF_LIB)
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Set path to tiff directories with --with-tiff=include|lib
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(for TIFF include directory)
+-if [ test -d /sw/include ]; then	# fink
+-	TIFF_INC=/sw/include
+-elif [ test -d /opt/local/include ]; then	# macports
+-	TIFF_INC=/opt/local/include
+-elif [ test -d /usr/local/include ]; then
+-	TIFF_INC=/usr/local/include
+-elif [ test -d /usr/include ]; then	# Ubuntu
+-	TIFF_INC=/usr/include
+-elif [ test -d /opt/csw/include ]; then	# Blastwave
+-	TIFF_INC=/opt/csw/include
+-elif [ test -d /opt/include ]; then
+-	TIFF_INC=/opt/include
+-fi
+-AC_MSG_RESULT($TIFF_INC)
+-AC_MSG_CHECKING(for TIFF library directory)
+-if test "X$with_tiff_lib" = "X"; then	# Must look for it in standard places
+-	if [ test -d /sw/include ]; then	# fink
+-		TIFF_LIB=/sw/lib
+-	elif [ test -d /opt/local/include ]; then	# macports
+-		TIFF_LIB=/opt/local/lib
+-	elif [ test -d /usr/local/include ]; then
+-		TIFF_LIB=/usr/local/lib
+-	elif [ test -d /usr/include ]; then	# Ubuntu
+-		TIFF_LIB=/usr/lib/x86_64-linux-gnu
+-	elif [ test -d /opt/csw/include ]; then	# Blastwave
+-		TIFF_LIB=/opt/csw/lib
+-	elif [ test -d /opt/include ]; then
+-		TIFF_LIB=/opt/lib
+-	fi
+-else
+-	TIFF_LIB=$with_tiff_lib/lib
+-fi
+-AC_MSG_RESULT($TIFF_LIB)
+-dnl
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl We use gmt-config to set GMT paths and settings
+-dnl ------------------------------------------------------------------
+-dnl
+-if test "X$with_gmt_config" != "Xno" ; then
+-	AC_PATH_PROG([GMT_CONF], [gmt-config], [$with_gmt_config])
+-fi
+-if test -x "$GMT_CONF" && test "X$GMT_INC" = "X" && test "X$GMT_LIB" = "X" ; then
+-	AC_MSG_CHECKING(for GMT includes)
+-	GMT_INC=`$GMT_CONF --cflags`
+-	AC_MSG_RESULT($GMT_INC)
+-	AC_MSG_CHECKING(for GMT libs)
+-	GMT_LIB=`$GMT_CONF --libs`
+-	AC_MSG_RESULT($GMT_LIB)
+-	GMT_LIB_PATH=`echo $GMT_LIB | sed 's/^-L//;s/\ .*//'`
+-	rpath="$GMT_LIB_PATH"
+-	AC_MSG_CHECKING(for 32/64-bit GMT installation)
+-	bits=`$GMT_CONF --bits`
+-	GCC_64="-m${bits}"
+-	LDFLAGS="$LDFLAGS -m${bits}"
+-	AC_MSG_RESULT(found ${bits}-bit)
+-fi
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Allow user to set --enable-debug to pass -g flag
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(if we should compile with debugging switch -g)
+-CFLAGS=$ac_save_CFLAGS
+-CXXFLAGS=$ac_save_CXXFLAGS
+-if test "X$enable_debug" = "Xyes" ; then
+-	AC_MSG_RESULT(yes)
+-	CFLAGS="$CFLAGS -g"
+-	CXXFLAGS="$CXXFLAGS -g"
+-else
+-	CFLAGS=`echo $CFLAGS | sed 's/-g//'`
+-	CXXFLAGS=`echo $CXXFLAGS | sed 's/-g//'`
+-	if test "$os" = "Darwin" ; then
+-		LDFLAGS="$LDFLAGS -Wl,-x"
+-	else
+-		LDFLAGS="$LDFLAGS -s"
+-	fi
+-	if test "$GCC" = "yes" || test "$os" = "Linux" || test "$os" = "AIX"; then
+-		CFLAGS="$CFLAGS -O2"
+-		CXXFLAGS="$CXXFLAGS -O2"
+-	elif test "$chip" = "alpha" || test "$os" = "AUX" || test "$os" = "HP-UX"; then
+-		CFLAGS="$CFLAGS"
+-	else
+-		CFLAGS="$CFLAGS -O"
+-		CXXFLAGS="$CXXFLAGS -O"
+-	fi
+-	AC_MSG_RESULT(no)
+-fi
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Determine LD_OPT for this platform
+-dnl ------------------------------------------------------------------
+-dnl
+-shared_unknown=no
+-LD_OPT=
+-LD=ld
+-SL=so
+-LIBEXT='$(SL)'
+-SL_VERSION='$(SL)'
+-if test "X$enable_shared" = "Xyes" ; then
+-	AC_MSG_CHECKING(how to make a shared object)
+-	if test "X$CYGWIN" = "Xyes" ; then
+-		SL=dll.a
+-		SL_VERSION=$LIB_MAJOR_VERSION.$SL
+-		LD='$(CC)'
+-		LD_OPT="-shared"
+-	elif test "$os" = "SunOS" ; then
+-		if test "$Sun_rev" = "" ; then	# SunOS
+-			LD_OPT="-Bdynamic"
+-		else				# Solaris
+-			LD_OPT="-G"
+-		fi
+-	elif test "$os" = "Linux" || test "$os" = "GNU/kFreeBSD" ; then	# Need optimization when doing shared
+-		LD='$(CC)'
+-		SL_VERSION=$SL.$LIB_MAJOR_VERSION
+-		LD_OPT='-shared -Wl,-soname=$*.'$SL_VERSION
+-	elif test "$os" = "FreeBSD" || test "$os" = "NetBSD" ; then
+-		SL_VERSION=$SL.$LIB_MAJOR_VERSION
+-		LD_OPT='-shared -Wl,-soname=$*.'$SL_VERSION
+-	elif test "$os" = "OSF1" ; then
+-		LD_OPT='-shared -expect_unresolved "*"'
+-	elif test "$os" = "IRIX64" ; then
+-		LD_OPT="-shared"
+-		# Need to remove -L/usr/lib to avoid mixing o32 and n32
+-		X_LIBS=
+-	elif test "$os" = "Darwin" ; then	# MacOS X
+-		SL=dylib
+-		SL_VERSION=$LIB_MAJOR_VERSION.$SL
+-		LD='$(CC)'
+-		LD_OPT='-install_name ${prefix}/lib/$*.'$SL_VERSION' -compatibility_version 4.0.0 -current_version '$LIB_VERSION' -dynamiclib '$OSX_L
+-		if test $osr -eq 8 ; then	# Tiger needs special option for shared libs
+-			CFLAGS="$CFLAGS -fno-common"
+-		fi
+-	elif test "$os" = "HP-UX" ; then
+-		LD_OPT="-b"
+-		SL=sl
+-	else	# Not yet implemented
+-		AC_MSG_RESULT(not supported for GMTSAR under $os - building static libs instead)
+-		enable_shared=no
+-		shared_unknown=yes
+-	fi
+-fi
+-if test "X$enable_shared" = "Xyes" ; then
+-	rpath="$rpath"':$(libdir)'
+-	AC_MSG_RESULT($LD $LD_OPT)
+-	AC_MSG_CHECKING(the file extension for shared libraries)
+-	AC_MSG_RESULT($SL)
+-else
+-	LIBEXT='a'
+-fi
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Determine LDFLAGS for this platform
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(linker options)
+-flag=
+-if test "X$enable_rpath" = "Xno" ; then
+-	flag=
+-elif test "$os" = "SunOS" ; then
+-	if test "$Sun_rev" = "" ; then
+-		flag="-L"
+-	else
+-		flag="-R,"
+-	fi
+-elif test "$os" = "Linux" || test "$os" = "FreeBSD" || test "$os" = "NetBSD" || test "$os" = "OSF1" || test "$os" = "IRIX64" ; then
+-	flag="-rpath,"
+-elif test "$os" = "HP-UX" ; then
+-	flag="+b,"
+-fi
+-if test "X$flag" != "X" ; then
+-	LDFLAGS="$LDFLAGS -Wl,$flag$rpath"
+-fi
+-AC_MSG_RESULT($LDFLAGS)
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Determine CFLAGS for this platform
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(C compiler options for GMTSAR)
+-if test "$GCC" = "yes"; then		# GNU cc options
+-	if test "$chip" = "alpha" ; then	# Alpha PC
+-		CFLAGS="$CFLAGS -mieee -Wall $GCC_64"
+-		CXXFLAGS="$CXXFLAGS -mieee -Wall $GCC_64"
+-	else				# MacOSX, Linux, ...
+-		CFLAGS="$CFLAGS -Wall $GCC_64"
+-		CXXFLAGS="$CXXFLAGS -Wall $GCC_64"
+-	fi
+-	CFLAGS="$CFLAGS -fPIC -fno-strict-aliasing -std=c99"
+-	CXXFLAGS="$CXXFLAGS -fPIC"
+-elif test "$os" = "SunOS" ; then	# Sun Workshop CC options
+-	CFLAGS="$CFLAGS -Xc"
+-elif test "$os" = "HP-UX" ; then	# HP cc options
+-	CFLAGS="$CFLAGS -Aa +Ofltacc +O1 +Olibcalls"
+-	if test "$enable_shared" = "yes" ; then
+-		CFLAGS="$CFLAGS +z"
+-	fi
+-elif test "$os" = "OSF1" ; then		# Dec Alpha OSF cc options
+-	CFLAGS="$CFLAGS -Olimit 1500 -ieee_with_inexact"
+-elif test "$os" = "ULTRIX" ; then	# Dec Ultrix cc options
+-	CFLAGS="$CFLAGS -Olimit 1500"
+-fi
+-AC_MSG_RESULT($CFLAGS)
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Determine CPPFLAGS for this platform
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(compiler preprocessor flags for GMTSAR)
+-if test "$os" = "AUX" ; then		# Apple A/UX cc options
+-	CPPFLAGS="$CPPFLAGS -Daux"
+-fi
+-AC_MSG_RESULT($CPPFLAGS)
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Check if we have GNU make. If not, add CPPFLAGS to CFLAGS
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_MSG_CHECKING(if CPPFLAGS need to be added to CFLAGS)
+-${MAKE:-make} -p -f /dev/null 2>&1 | grep CPPFLAGS > /dev/null
+-if test "$?" = "0" ; then
+-	AC_MSG_RESULT(no)
+-else
+-	CFLAGS="$CFLAGS "'$(CPPFLAGS)'
+-	AC_MSG_RESULT(yes)
+-fi
+-GMTSAR_VERSION=AC_PACKAGE_VERSION
+-dnl
+-dnl ------------------------------------------------------------------
+-dnl Update Make macros and preprocess scripts that need the orbits dir
+-dnl ------------------------------------------------------------------
+-dnl
+-AC_OUTPUT(config.mk preproc/ENVI_preproc/scripts/ENVI_pre_process preproc/ENVI_preproc/scripts/ENVI_SLC_pre_process preproc/ERS_preproc/scripts/ERS_pre_process gmtsar/csh/gmtsar_sharedir.csh)
+-dnl
+diff --git a/gmtsar/Makefile b/gmtsar/Makefile
+deleted file mode 100644
+index 4ce6a4e..0000000
+--- a/gmtsar/Makefile
++++ /dev/null
+@@ -1,71 +0,0 @@
+-#	$Id: Makefile 109 2015-01-19 23:01:24Z sandwell $
+-#
+-#	makefile for gmtsar directory (sbas.c not included yet)
+-
+-include ../config.mk
+-
+-INCLUDES	= $(GMT_INC) -I./ -I$(TIFF_INC)
+-
+-LIB_C		= aastretch.c acpatch.c calc_dop.c conv2d.c do_freq_xcorr.c \
+-		  do_time_int_xcorr.c fft_bins.c fft_interpolate_routines.c \
+-		  file_stuff.c geoxyz.c get_locations.c get_params.c hermite_c.c \
+-		  highres_corr.c interpolate_orbit.c intp_coef.c ldr_orbit.c \
+-		  parse_xcorr_input.c plxyz.c polyfit.c print_results.c radopp.c \
+-		  read_orb.c read_xcorr_data.c SAT_llt2rat_sub.c \
+-		  rmpatch.c rng_cmp.c rng_ref.c set_prm_defaults.c shift.c \
+-		  sio_struct.c siocomplex.c spline.c trans_col.c utils.c utils_complex.c \
+-		  write_orb.c sbas_utils.c stringutils.c update_PRM_sub.c rng_filter.c \
+-		  lib_strfuncs.c
+-
+-LIB_O		= $(LIB_C:.c=.o)
+-LIB		= libgmtsar.$(LIBEXT)
+-
+-#-------------------------------------------------------------------------------
+-#	library
+-#-------------------------------------------------------------------------------
+-
+-$(LIB):		$(LIB_O)
+-		$(AR) cvur $@ $?
+-		$(RANLIB) $@
+-
+-lib:		$(LIB)
+-
+-PROGS_C		= bperp.c calc_dop_orb.c conv.c esarp.c offset_topo.c phase2topo.c \
+-		  phasediff.c phasefilt.c resamp.c xcorr.c extend_orbit.c update_PRM.c get_PRM.c \
+-		  SAT_llt2rat.c SAT_look.c SAT_baseline.c make_gaussian_filter.c sbas.c \
+-          nearest_grid.c fitoffset.c solid_tide.c p_scatter.c split_spectrum.c cut_slc.c \
+-          split_aperture.c phasediff_get_topo_phase.c
+-
+-PROGS_O         = $(PROGS_C:.c=.o)
+-PROGS           = $(PROGS_C:.c=)
+-
+-#-------------------------------------------------------------------------------
+-#	software targets
+-#-------------------------------------------------------------------------------
+-
+-all:		$(PROGS)
+-
+-install:	all
+-		$(INSTALL) -d $(bindir)
+-		$(INSTALL) $(PROGS) $(bindir)
+-		ls csh/*.csh csh/*.sh > /tmp/t.lis
+-		$(INSTALL) `cat /tmp/t.lis` $(bindir)
+-		rm -f /tmp/t.lis
+-
+-uninstall:
+-		cd $(bindir); rm -f $(PROGS)
+-		cd csh; ls *.csh > /tmp/t.lis
+-		cd $(bindir); rm -f `cat /tmp/t.lis`
+-		rm -f /tmp/t.lis
+-
+-spotless::	clean
+-
+-clean:	
+-		rm -f *.a *.o *% core tags $(PROGS)
+-
+-#-------------------------------------------------------------------------------
+-#	program rules
+-#-------------------------------------------------------------------------------
+-
+-$(PROGS):	$(PROGS_O) $(LIB)
+-		$(CC) $(LDFLAGS) $@.o $(GMTSAR) $(GMT_LIB) $(LALIBS) $(LIBS)  -L$(TIFF_LIB) -ltiff -lm -o $@
+diff --git a/gmtsar/lib_src/Makefile b/gmtsar/lib_src/Makefile
+deleted file mode 100644
+index e9b49ac..0000000
+--- a/gmtsar/lib_src/Makefile
++++ /dev/null
+@@ -1,35 +0,0 @@
+-#	$Id: Makefile 109 2015-01-19 23:01:24Z sandwell $
+-#
+-#    makefile for gmtsar directory
+-#
+-include ../../config.mk
+-
+-INCLUDES	= $(GMT_INC) -I../include
+-
+-LIB_C		= aastretch.c acpatch.c calc_dop.c conv2d.c do_freq_xcorr.c \
+-		  do_time_int_xcorr.c fft_bins.c fft_interpolate_routines.c \
+-		  file_stuff.c geoxyz.c get_locations.c get_params.c hermite_c.c \
+-		  highres_corr.c interpolate_orbit.c intp_coef.c ldr_orbit.c \
+-		  parse_xcorr_input.c plxyz.c polyfit.c print_results.c radopp.c \
+-		  read_orb.c read_xcorr_data.c SAT_llt2rat_sub.c \
+-		  rmpatch.c rng_cmp.c rng_ref.c set_prm_defaults.c shift.c \
+-		  sio_struct.c siocomplex.c spline.c trans_col.c utils.c utils_complex.c \
+-		  write_orb.c sbas_utils.c
+-
+-LIB_O		= $(LIB_C:.c=.o)
+-LIB		= libgmtsar.$(LIBEXT)
+-
+-#-------------------------------------------------------------------------------
+-#	library
+-#-------------------------------------------------------------------------------
+-
+-$(LIB):		$(LIB_O)
+-		$(AR) cvur $@ $?
+-		$(RANLIB) $@
+-
+-lib:		$(LIB)
+-
+-clean:
+-		rm -f *% *.o *.a
+-
+-spotless::	clean
+diff --git a/gmtsar/test_shift/Makefile b/gmtsar/test_shift/Makefile
+deleted file mode 100644
+index 0b62836..0000000
+--- a/gmtsar/test_shift/Makefile
++++ /dev/null
+@@ -1,24 +0,0 @@
+-PROG =  test_shift
+-CSRCS = test_shift.c 
+-
+-FSRCS =
+-FC = 
+-CC = gcc
+-
+-OBJS =  $(CSRCS:.c=.o)	$(FSRCS:.f=.o)
+-INC =  /opt/local/include/gmt 
+-
+-CLIBS = -L/opt/local/lib -lgmt -L../lib_src -lgmtsar -lm
+-FLIBS = 
+-CFLAGS = -O2 -Bstatic $(M64) -w
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS) $(FLIBS) $(VEC)
+-
+-.c.o:
+-	$(CC) $(CFLAGS) -c $*.c -o $*.o -I$(INC) -I/usr/local/GMTSAR/gmtsar/include
+-
+-install:
+-	\mv $(PROG) ../../bin
+-clean:
+-	-rm -f $(OBJS) tags core
+diff --git a/install-sh b/install-sh
+deleted file mode 100755
+index 6ebe46d..0000000
+--- a/install-sh
++++ /dev/null
+@@ -1,323 +0,0 @@
+-#!/bin/sh
+-# install - install a program, script, or datafile
+-
+-scriptversion=2004-12-17.09
+-
+-# This originates from X11R5 (mit/util/scripts/install.sh), which was
+-# later released in X11R6 (xc/config/util/install.sh) with the
+-# following copyright and license.
+-#
+-# Copyright (C) 1994 X Consortium
+-#
+-# Permission is hereby granted, free of charge, to any person obtaining a copy
+-# of this software and associated documentation files (the "Software"), to
+-# deal in the Software without restriction, including without limitation the
+-# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+-# sell copies of the Software, and to permit persons to whom the Software is
+-# furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in
+-# all copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+-# X CONSORTIUM BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+-# AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNEC-
+-# TION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-#
+-# Except as contained in this notice, the name of the X Consortium shall not
+-# be used in advertising or otherwise to promote the sale, use or other deal-
+-# ings in this Software without prior written authorization from the X Consor-
+-# tium.
+-#
+-#
+-# FSF changes to this file are in the public domain.
+-#
+-# Calling this script install-sh is preferred over install.sh, to prevent
+-# `make' implicit rules from creating a file called install from it
+-# when there is no Makefile.
+-#
+-# This script is compatible with the BSD install script, but was written
+-# from scratch.  It can only install one file at a time, a restriction
+-# shared with many OS's install programs.
+-
+-# set DOITPROG to echo to test this script
+-
+-# Don't use :- since 4.3BSD and earlier shells don't like it.
+-doit="${DOITPROG-}"
+-
+-# put in absolute paths if you don't have them in your path; or use env. vars.
+-
+-mvprog="${MVPROG-mv}"
+-cpprog="${CPPROG-cp}"
+-chmodprog="${CHMODPROG-chmod}"
+-chownprog="${CHOWNPROG-chown}"
+-chgrpprog="${CHGRPPROG-chgrp}"
+-stripprog="${STRIPPROG-strip}"
+-rmprog="${RMPROG-rm}"
+-mkdirprog="${MKDIRPROG-mkdir}"
+-
+-chmodcmd="$chmodprog 0755"
+-chowncmd=
+-chgrpcmd=
+-stripcmd=
+-rmcmd="$rmprog -f"
+-mvcmd="$mvprog"
+-src=
+-dst=
+-dir_arg=
+-dstarg=
+-no_target_directory=
+-
+-usage="Usage: $0 [OPTION]... [-T] SRCFILE DSTFILE
+-   or: $0 [OPTION]... SRCFILES... DIRECTORY
+-   or: $0 [OPTION]... -t DIRECTORY SRCFILES...
+-   or: $0 [OPTION]... -d DIRECTORIES...
+-
+-In the 1st form, copy SRCFILE to DSTFILE.
+-In the 2nd and 3rd, copy all SRCFILES to DIRECTORY.
+-In the 4th, create DIRECTORIES.
+-
+-Options:
+--c         (ignored)
+--d         create directories instead of installing files.
+--g GROUP   $chgrpprog installed files to GROUP.
+--m MODE    $chmodprog installed files to MODE.
+--o USER    $chownprog installed files to USER.
+--s         $stripprog installed files.
+--t DIRECTORY  install into DIRECTORY.
+--T         report an error if DSTFILE is a directory.
+---help     display this help and exit.
+---version  display version info and exit.
+-
+-Environment variables override the default commands:
+-  CHGRPPROG CHMODPROG CHOWNPROG CPPROG MKDIRPROG MVPROG RMPROG STRIPPROG
+-"
+-
+-while test -n "$1"; do
+-  case $1 in
+-    -c) shift
+-        continue;;
+-
+-    -d) dir_arg=true
+-        shift
+-        continue;;
+-
+-    -g) chgrpcmd="$chgrpprog $2"
+-        shift
+-        shift
+-        continue;;
+-
+-    --help) echo "$usage"; exit 0;;
+-
+-    -m) chmodcmd="$chmodprog $2"
+-        shift
+-        shift
+-        continue;;
+-
+-    -o) chowncmd="$chownprog $2"
+-        shift
+-        shift
+-        continue;;
+-
+-    -s) stripcmd=$stripprog
+-        shift
+-        continue;;
+-
+-    -t) dstarg=$2
+-	shift
+-	shift
+-	continue;;
+-
+-    -T) no_target_directory=true
+-	shift
+-	continue;;
+-
+-    --version) echo "$0 $scriptversion"; exit 0;;
+-
+-    *)  # When -d is used, all remaining arguments are directories to create.
+-	# When -t is used, the destination is already specified.
+-	test -n "$dir_arg$dstarg" && break
+-        # Otherwise, the last argument is the destination.  Remove it from $@.
+-	for arg
+-	do
+-          if test -n "$dstarg"; then
+-	    # $@ is not empty: it contains at least $arg.
+-	    set fnord "$@" "$dstarg"
+-	    shift # fnord
+-	  fi
+-	  shift # arg
+-	  dstarg=$arg
+-	done
+-	break;;
+-  esac
+-done
+-
+-if test -z "$1"; then
+-  if test -z "$dir_arg"; then
+-    echo "$0: no input file specified." >&2
+-    exit 1
+-  fi
+-  # It's OK to call `install-sh -d' without argument.
+-  # This can happen when creating conditional directories.
+-  exit 0
+-fi
+-
+-for src
+-do
+-  # Protect names starting with `-'.
+-  case $src in
+-    -*) src=./$src ;;
+-  esac
+-
+-  if test -n "$dir_arg"; then
+-    dst=$src
+-    src=
+-
+-    if test -d "$dst"; then
+-      mkdircmd=:
+-      chmodcmd=
+-    else
+-      mkdircmd=$mkdirprog
+-    fi
+-  else
+-    # Waiting for this to be detected by the "$cpprog $src $dsttmp" command
+-    # might cause directories to be created, which would be especially bad
+-    # if $src (and thus $dsttmp) contains '*'.
+-    if test ! -f "$src" && test ! -d "$src"; then
+-      echo "$0: $src does not exist." >&2
+-      exit 1
+-    fi
+-
+-    if test -z "$dstarg"; then
+-      echo "$0: no destination specified." >&2
+-      exit 1
+-    fi
+-
+-    dst=$dstarg
+-    # Protect names starting with `-'.
+-    case $dst in
+-      -*) dst=./$dst ;;
+-    esac
+-
+-    # If destination is a directory, append the input filename; won't work
+-    # if double slashes aren't ignored.
+-    if test -d "$dst"; then
+-      if test -n "$no_target_directory"; then
+-	echo "$0: $dstarg: Is a directory" >&2
+-	exit 1
+-      fi
+-      dst=$dst/`basename "$src"`
+-    fi
+-  fi
+-
+-  # This sed command emulates the dirname command.
+-  dstdir=`echo "$dst" | sed -e 's,/*$,,;s,[^/]*$,,;s,/*$,,;s,^$,.,'`
+-
+-  # Make sure that the destination directory exists.
+-
+-  # Skip lots of stat calls in the usual case.
+-  if test ! -d "$dstdir"; then
+-    defaultIFS='
+-	 '
+-    IFS="${IFS-$defaultIFS}"
+-
+-    oIFS=$IFS
+-    # Some sh's can't handle IFS=/ for some reason.
+-    IFS='%'
+-    set x `echo "$dstdir" | sed -e 's@/@%@g' -e 's@^%@/@'`
+-    shift
+-    IFS=$oIFS
+-
+-    pathcomp=
+-
+-    while test $# -ne 0 ; do
+-      pathcomp=$pathcomp$1
+-      shift
+-      if test ! -d "$pathcomp"; then
+-        $mkdirprog "$pathcomp"
+-	# mkdir can fail with a `File exist' error in case several
+-	# install-sh are creating the directory concurrently.  This
+-	# is OK.
+-	test -d "$pathcomp" || exit
+-      fi
+-      pathcomp=$pathcomp/
+-    done
+-  fi
+-
+-  if test -n "$dir_arg"; then
+-    $doit $mkdircmd "$dst" \
+-      && { test -z "$chowncmd" || $doit $chowncmd "$dst"; } \
+-      && { test -z "$chgrpcmd" || $doit $chgrpcmd "$dst"; } \
+-      && { test -z "$stripcmd" || $doit $stripcmd "$dst"; } \
+-      && { test -z "$chmodcmd" || $doit $chmodcmd "$dst"; }
+-
+-  else
+-    dstfile=`basename "$dst"`
+-
+-    # Make a couple of temp file names in the proper directory.
+-    dsttmp=$dstdir/_inst.$$_
+-    rmtmp=$dstdir/_rm.$$_
+-
+-    # Trap to clean up those temp files at exit.
+-    trap 'ret=$?; rm -f "$dsttmp" "$rmtmp" && exit $ret' 0
+-    trap '(exit $?); exit' 1 2 13 15
+-
+-    # Copy the file name to the temp name.
+-    $doit $cpprog "$src" "$dsttmp" &&
+-
+-    # and set any options; do chmod last to preserve setuid bits.
+-    #
+-    # If any of these fail, we abort the whole thing.  If we want to
+-    # ignore errors from any of these, just make sure not to ignore
+-    # errors from the above "$doit $cpprog $src $dsttmp" command.
+-    #
+-    { test -z "$chowncmd" || $doit $chowncmd "$dsttmp"; } \
+-      && { test -z "$chgrpcmd" || $doit $chgrpcmd "$dsttmp"; } \
+-      && { test -z "$stripcmd" || $doit $stripcmd "$dsttmp"; } \
+-      && { test -z "$chmodcmd" || $doit $chmodcmd "$dsttmp"; } &&
+-
+-    # Now rename the file to the real destination.
+-    { $doit $mvcmd -f "$dsttmp" "$dstdir/$dstfile" 2>/dev/null \
+-      || {
+-	   # The rename failed, perhaps because mv can't rename something else
+-	   # to itself, or perhaps because mv is so ancient that it does not
+-	   # support -f.
+-
+-	   # Now remove or move aside any old file at destination location.
+-	   # We try this two ways since rm can't unlink itself on some
+-	   # systems and the destination file might be busy for other
+-	   # reasons.  In this case, the final cleanup might fail but the new
+-	   # file should still install successfully.
+-	   {
+-	     if test -f "$dstdir/$dstfile"; then
+-	       $doit $rmcmd -f "$dstdir/$dstfile" 2>/dev/null \
+-	       || $doit $mvcmd -f "$dstdir/$dstfile" "$rmtmp" 2>/dev/null \
+-	       || {
+-		 echo "$0: cannot unlink or rename $dstdir/$dstfile" >&2
+-		 (exit 1); exit 1
+-	       }
+-	     else
+-	       :
+-	     fi
+-	   } &&
+-
+-	   # Now rename the file to the real destination.
+-	   $doit $mvcmd "$dsttmp" "$dstdir/$dstfile"
+-	 }
+-    }
+-  fi || { (exit 1); exit 1; }
+-done
+-
+-# The final little trick to "correctly" pass the exit status to the exit trap.
+-{
+-  (exit 0); exit 0
+-}
+-
+-# Local variables:
+-# eval: (add-hook 'write-file-hooks 'time-stamp)
+-# time-stamp-start: "scriptversion="
+-# time-stamp-format: "%:y-%02m-%02d.%02H"
+-# time-stamp-end: "$"
+-# End:
+diff --git a/preproc/ALOS_preproc/ALOS_baseline/Makefile b/preproc/ALOS_preproc/ALOS_baseline/Makefile
+deleted file mode 100644
+index 48ba0e2..0000000
+--- a/preproc/ALOS_preproc/ALOS_baseline/Makefile
++++ /dev/null
+@@ -1,23 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_baseline
+-CSRCS = ALOS_baseline.c \
+-	ALOS_llt2rat_sub.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	mv $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_fbd2fbs/Makefile b/preproc/ALOS_preproc/ALOS_fbd2fbs/Makefile
+deleted file mode 100644
+index aa74cde..0000000
+--- a/preproc/ALOS_preproc/ALOS_fbd2fbs/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_fbd2fbs
+-CSRCS = ALOS_fbd2fbs.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_fbd2fbs_SLC/Makefile b/preproc/ALOS_preproc/ALOS_fbd2fbs_SLC/Makefile
+deleted file mode 100644
+index 225e297..0000000
+--- a/preproc/ALOS_preproc/ALOS_fbd2fbs_SLC/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_fbd2fbs_SLC
+-CSRCS = ALOS_fbd2fbs_SLC.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_fbd2ss/Makefile b/preproc/ALOS_preproc/ALOS_fbd2ss/Makefile
+deleted file mode 100644
+index 501b31f..0000000
+--- a/preproc/ALOS_preproc/ALOS_fbd2ss/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_fbd2ss
+-CSRCS = ALOS_fbd2ss.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_fbs2fbd/Makefile b/preproc/ALOS_preproc/ALOS_fbs2fbd/Makefile
+deleted file mode 100644
+index f97e861..0000000
+--- a/preproc/ALOS_preproc/ALOS_fbs2fbd/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_fbs2fbd
+-CSRCS = ALOS_fbs2fbd.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_llt2rat/Makefile b/preproc/ALOS_preproc/ALOS_llt2rat/Makefile
+deleted file mode 100644
+index 4142dbf..0000000
+--- a/preproc/ALOS_preproc/ALOS_llt2rat/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_llt2rat
+-CSRCS = ALOS_llt2rat.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_look/Makefile b/preproc/ALOS_preproc/ALOS_look/Makefile
+deleted file mode 100644
+index 9151b8b..0000000
+--- a/preproc/ALOS_preproc/ALOS_look/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_look
+-CSRCS = ALOS_look.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_merge/Makefile b/preproc/ALOS_preproc/ALOS_merge/Makefile
+deleted file mode 100644
+index 3448143..0000000
+--- a/preproc/ALOS_preproc/ALOS_merge/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_merge
+-CSRCS = ALOS_merge.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_mosaic_ss/Makefile b/preproc/ALOS_preproc/ALOS_mosaic_ss/Makefile
+deleted file mode 100644
+index d7c6883..0000000
+--- a/preproc/ALOS_preproc/ALOS_mosaic_ss/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_mosaic_ss
+-CSRCS = ALOS_mosaic_ss.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar $(GMT_INC)
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS) $(GMTSAR) $(GMT_LIB) $(INCLUDES)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(PROG) $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_mosaic_ss/Makefile2 b/preproc/ALOS_preproc/ALOS_mosaic_ss/Makefile2
+deleted file mode 100644
+index 6ecce1e..0000000
+--- a/preproc/ALOS_preproc/ALOS_mosaic_ss/Makefile2
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_mosaic_ss_2frames
+-CSRCS = ALOS_mosaic_ss_2frames.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar $(GMT_INC)
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS) $(GMTSAR) $(GMT_LIB) $(INCLUDES)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_mosaic_ss_2frames/Makefile b/preproc/ALOS_preproc/ALOS_mosaic_ss_2frames/Makefile
+deleted file mode 100644
+index ebe305b..0000000
+--- a/preproc/ALOS_preproc/ALOS_mosaic_ss_2frames/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_mosaic_ss_2frames
+-CSRCS = ALOS_mosaic_ss_2frames.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar $(GMT_INC)
+-
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS) $(GMTSAR) $(GMT_LIB) $(INCLUDES)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(PROG) $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_pre_process/Makefile b/preproc/ALOS_preproc/ALOS_pre_process/Makefile
+deleted file mode 100644
+index 0960960..0000000
+--- a/preproc/ALOS_preproc/ALOS_pre_process/Makefile
++++ /dev/null
+@@ -1,26 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_pre_process
+-CSRCS = ALOS_pre_process.c \
+-	parse_ALOS_commands.c \
+-	read_ALOS_data.c \
+-	read_ALOSE_data.c \
+-	swap_ALOS_data_info.c \
+-	roi_utils.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)  $(FLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_pre_process_SLC/Makefile b/preproc/ALOS_preproc/ALOS_pre_process_SLC/Makefile
+deleted file mode 100644
+index c87c195..0000000
+--- a/preproc/ALOS_preproc/ALOS_pre_process_SLC/Makefile
++++ /dev/null
+@@ -1,25 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_pre_process_SLC
+-CSRCS = ALOS_pre_process_SLC.c \
+-	parse_ALOS_commands.c \
+-	read_ALOS_data_SLC.c \
+-	swap_ALOS_data_info.c 
+-
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_pre_process_SS/Makefile b/preproc/ALOS_preproc/ALOS_pre_process_SS/Makefile
+deleted file mode 100644
+index 378e63d..0000000
+--- a/preproc/ALOS_preproc/ALOS_pre_process_SS/Makefile
++++ /dev/null
+@@ -1,24 +0,0 @@
+-include ../../../config.mk
+-PROG =  ALOS_pre_process_SS
+-CSRCS = ALOS_pre_process_SS.c \
+-	parse_ALOS_commands.c \
+-	read_ALOS_data_SS.c \
+-	swap_ALOS_data_info.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include
+-CLIBS = -L../lib -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/ALOS_pre_process_SS/test_shift/Makefile b/preproc/ALOS_preproc/ALOS_pre_process_SS/test_shift/Makefile
+deleted file mode 100644
+index 20922f3..0000000
+--- a/preproc/ALOS_preproc/ALOS_pre_process_SS/test_shift/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-PROG =  test_shift
+-CSRCS = test_shift.c \
+-	shift.c
+-OS = `arch`
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../../include
+-CLIBS = -L../../lib/$(OS) -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-install:
+-	$(INSTALL) $(PROG) ../bin/$(OS)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ALOS_preproc/Makefile b/preproc/ALOS_preproc/Makefile
+deleted file mode 100644
+index f18032e..0000000
+--- a/preproc/ALOS_preproc/Makefile
++++ /dev/null
+@@ -1,36 +0,0 @@
+-include ../../config.mk
+-
+-DIRS	= ALOS_pre_process ALOS_merge ALOS_fbd2fbs \
+-	  ALOS_fbd2fbs_SLC ALOS_fbd2ss ALOS_baseline \
+-	  ALOS_pre_process_SLC ALOS_mosaic_ss ALOS_look \
+-	  ALOS_mosaic_ss ALOS_mosaic_ss_2frames ALOS_pre_process_SS
+- 
+-LIB	= lib/libALOS.a
+-
+-all:	$(LIB)
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	all
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-
+-uninstall:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) uninstall); \
+-	done
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-	(cd lib_src; $(MAKE) clean)
+-
+-$(LIB):
+-	mkdir -p lib
+-	(cd lib_src; $(MAKE) all)
+-
+-spotless:	clean
+-	rm -rf lib
+diff --git a/preproc/ALOS_preproc/lib_src/Makefile b/preproc/ALOS_preproc/lib_src/Makefile
+deleted file mode 100644
+index 9b54228..0000000
+--- a/preproc/ALOS_preproc/lib_src/Makefile
++++ /dev/null
+@@ -1,45 +0,0 @@
+-sinclude ../../../config.mk
+-# Makefile for lib_src 
+-LIB = libALOS.a
+-INCLUDES = -I../include
+-
+-SRCS =	utils.c \
+-	null_sio_struct.c \
+-	get_sio_struct.c \
+-	put_sio_struct.c \
+-	calc_dop.c \
+-	hermite_c.c \
+-	ALOS_ldr_orbit.c \
+-	ALOSE_orbits_utils.c \
+-	interpolate_ALOS_orbit.c \
+-	read_ALOS_sarleader.c \
+-	set_ALOS_defaults.c \
+-	write_ALOS_prm.c \
+-	write_ALOS_LED.c \
+-	write_orb.c \
+-	rng_expand.c \
+-	rng_compress.c \
+-	rng_filter.c \
+-	find_fft_length.c \
+-	siocomplex.c \
+-	polyfit.c \
+-	plh2xyz.c \
+-	xyz2plh.c \
+-	cfft1d.c \
+-	swap32.c \
+-	swap16.c \
+-	fftpack.c
+-
+-OBJS= $(SRCS:.c=.o)
+-
+-$(LIB) : $(OBJS)
+-	$(AR) r $(LIB) $?
+-	$(RANLIB) $(LIB)
+-
+-all:	install
+-
+-install:	$(LIB)
+-	$(INSTALL) *.a ../lib
+-
+-clean:
+-	rm -f *.a *.o 
+diff --git a/preproc/ALOS_preproc/lib_src/Makefile_orig b/preproc/ALOS_preproc/lib_src/Makefile_orig
+deleted file mode 100644
+index 4b95a61..0000000
+--- a/preproc/ALOS_preproc/lib_src/Makefile_orig
++++ /dev/null
+@@ -1,43 +0,0 @@
+-# Makefile for lib src 
+-CC = gcc 
+-LIB = libALOS.a
+-INC = ../include
+-#CC = gcc 
+-#CFLAGS = -O3 -xN -no-proc-div -ipo -static -Wall -I$(INC)
+-#CFLAGS = -O3 -Wall -I$(INC)
+-CFLAGS = -Wall -I$(INC)
+-
+-SRCS =	utils.c \
+-	null_sio_struct.c \
+-	get_sio_struct.c \
+-	put_sio_struct.c \
+-	calc_dop.c \
+-	hermite_c.c \
+-	ALOS_ldr_orbit.c \
+-	ALOSE_orbits_utils.c \
+-	interpolate_ALOS_orbit.c \
+-	read_ALOS_sarleader.c \
+-	set_ALOS_defaults.c \
+-	write_ALOS_prm.c \
+-	rng_expand.c \
+-	rng_compress.c \
+-	find_fft_length.c \
+-	siocomplex.c \
+-	polyfit.c \
+-	plh2xyz.c \
+-	xyz2plh.c \
+-	cfft1d.c \
+-	fftpack.c
+-
+-OBJS= $(SRCS:.c=.o)
+-
+-$(LIB) : $(OBJS)
+-	ar r $(LIB) $?
+-	ranlib  $(LIB)
+-
+-install:
+-	mv *.a ../lib/$(OS)
+-	ranlib  ../lib/$(OS)/$(LIB)
+-
+-clean:
+-	\rm -f *.a *.o 
+diff --git a/preproc/CSK_preproc/Makefile b/preproc/CSK_preproc/Makefile
+deleted file mode 100644
+index b21cd3b..0000000
+--- a/preproc/CSK_preproc/Makefile
++++ /dev/null
+@@ -1,29 +0,0 @@
+-include ../../config.mk
+-#
+-#   make all the files
+-#
+-DIRS	= src_slc src_raw
+-
+-all:
+-	$(LN_S) -f ../S1A_preproc/include include
+-	$(LN_S) -f ../S1A_preproc/lib lib
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	all
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-
+-uninstall:
+-	for d in src_slc src_raw; do \
+-		(cd $$d; $(MAKE) uninstall); \
+-	done
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-
+-spotless:	clean
+diff --git a/preproc/CSK_preproc/src_raw/Makefile b/preproc/CSK_preproc/src_raw/Makefile
+deleted file mode 100644
+index c60cc36..0000000
+--- a/preproc/CSK_preproc/src_raw/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-PROG =  make_raw_csk
+-CSRCS = make_raw_csk.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar $(HDF5_CPPFLAGS)
+-CLIBS = -L../../../gmtsar -lgmtsar -L../lib -lxmlC $(HDF5_LDFLAGS) $(HDF5_LIBS) -lm
+-
+-$(PROG): $(OBJS)
+-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(CLIBS) 
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/CSK_preproc/src_slc/Makefile b/preproc/CSK_preproc/src_slc/Makefile
+deleted file mode 100644
+index 97fe524..0000000
+--- a/preproc/CSK_preproc/src_slc/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-PROG =  make_slc_csk
+-CSRCS = make_slc_csk.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar $(HDF5_CPPFLAGS)
+-CLIBS = -L../../../gmtsar -lgmtsar -L../lib -lxmlC $(HDF5_LDFLAGS) $(HDF5_LIBS) -lm
+-
+-$(PROG): $(OBJS)
+-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(CLIBS) 
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ENVI_preproc/ASA_CAT/Makefile b/preproc/ENVI_preproc/ASA_CAT/Makefile
+deleted file mode 100644
+index 5cf6b21..0000000
+--- a/preproc/ENVI_preproc/ASA_CAT/Makefile
++++ /dev/null
+@@ -1,20 +0,0 @@
+-include ../../../config.mk
+-PROG =  asa_cat
+-CSRCS = asa_cat.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-CLIBS = -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ENVI_preproc/Dop_orbit/Makefile b/preproc/ENVI_preproc/Dop_orbit/Makefile
+deleted file mode 100644
+index 89a5a1c..0000000
+--- a/preproc/ENVI_preproc/Dop_orbit/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  calc_dop_orb_envi
+-CSRCS = calc_dop_orb_envi.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../../ALOS_preproc/include
+-
+-CLIBS = -L../../ALOS_preproc/lib -L../lib -lENVI -lALOS -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ENVI_preproc/ENVI_SLC_decode/Makefile b/preproc/ENVI_preproc/ENVI_SLC_decode/Makefile
+deleted file mode 100755
+index 66d7eba..0000000
+--- a/preproc/ENVI_preproc/ENVI_SLC_decode/Makefile
++++ /dev/null
+@@ -1,59 +0,0 @@
+-include ../../../config.mk
+-PROG =  envi_slc_decode
+-CSRCS = envi_slc_decode.c
+-
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../../../gmtsar -I../../S1A_preproc/include -I$(TIFF_INC)
+-CLIBS = -L../../../gmtsar -lgmtsar -L../lib -lENVI -L../../S1A_preproc/lib  -lxmlC -lm
+-
+-LIB_SRC =       epr_api-2.3/src/epr_api.c \
+-                epr_api-2.3/src/epr_band.c \
+-                epr_api-2.3/src/epr_bitmask.c \
+-                epr_api-2.3/src/epr_core.c \
+-                epr_api-2.3/src/epr_dataset.c \
+-                epr_api-2.3/src/epr_dddb.c \
+-                epr_api-2.3/src/epr_dsd.c \
+-                epr_api-2.3/src/epr_dump.c \
+-                epr_api-2.3/src/epr_field.c \
+-                epr_api-2.3/src/epr_msph.c \
+-                epr_api-2.3/src/epr_param.c \
+-                epr_api-2.3/src/epr_product.c \
+-                epr_api-2.3/src/epr_ptrarray.c \
+-                epr_api-2.3/src/epr_record.c \
+-                epr_api-2.3/src/epr_string.c \
+-                epr_api-2.3/src/epr_swap.c \
+-                epr_api-2.3/src/epr_typconv.c
+-
+-
+-all:	epr envi_slc_decode envisat_dump_data envisat_dump_header
+-
+-epr:		$(LIB_SRC)
+-	(cd epr_api-2.3/src/; make)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-	$(INSTALL) envisat_dump_data $(bindir)
+-	$(INSTALL) envisat_dump_header $(bindir)
+-
+-clean:
+-	rm -f $(OBJS) envi_slc_decode envisat_dump_data envisat_dump_header tags core
+-	(cd epr_api-2.3/src/; make clean)
+-
+-envi_slc_decode:
+-		$(CC) $(CFLAGS) $(INCLUDES) $(LFLAGS) \
+-		-o envi_slc_decode \
+-		envi_slc_decode.c \
+-		epr_api-2.3/src/*.o $(CLIBS)
+-
+-envisat_dump_data:
+-		$(CC) $(CFLAGS) $(INCLUDES) $(LFLAGS) \
+-		-o envisat_dump_data \
+-		envisat_dump_data.c \
+-		epr_api-2.3/src/*.o $(CLIBS)
+-
+-envisat_dump_header:
+-		$(CC) $(CFLAGS) $(INCLUDES) $(LFLAGS) \
+-		-o envisat_dump_header \
+-		envisat_dump_header.c \
+-		epr_api-2.3/src/*.o $(CLIBS)
+diff --git a/preproc/ENVI_preproc/ENVI_SLC_decode/epr_api-2.3/src/Makefile b/preproc/ENVI_preproc/ENVI_SLC_decode/epr_api-2.3/src/Makefile
+deleted file mode 100755
+index 5034c46..0000000
+--- a/preproc/ENVI_preproc/ENVI_SLC_decode/epr_api-2.3/src/Makefile
++++ /dev/null
+@@ -1,43 +0,0 @@
+-### makefile for bert to create a lib of object code
+-#%// BK 13-Jun-2003
+-#%// MA 24-Dec-2008    -m32 switch for 64-bit machines
+-#%// MA 05-Jan-2010    64-bit native with new epr_api_2.2
+-
+-include ../../../../../config.mk
+-
+-SRC = 		epr_api.c \
+-		epr_band.c \
+-		epr_bitmask.c \
+-		epr_core.c \
+-		epr_dataset.c \
+-		epr_dddb.c \
+-		epr_dsd.c \
+-		epr_dump.c \
+-		epr_field.c \
+-		epr_msph.c \
+-		epr_param.c \
+-		epr_product.c \
+-		epr_ptrarray.c \
+-		epr_record.c \
+-		epr_string.c \
+-		epr_swap.c \
+-		epr_typconv.c
+-
+-OBJ = 		$(SRC:.c=.o)
+-#CC =		gcc
+-#CFLAGS = 	-O3
+-#CFLAGS = 	-m32         # for 64-bit systems, if epr_api version < 2.2
+-CFLAGS = 	-w
+-
+-#CFLAGS = 	-fPIC -ansi -c
+-
+-.c.o:	
+-		$(CC) $(CFLAGS) -c -o $(@) $<
+-
+-default:	$(OBJ)
+-		echo "objects created done"
+-#		ar ...
+-
+-clean:		
+-		rm -f *.o
+-		@echo "removed all object files"
+diff --git a/preproc/ENVI_preproc/ENVI_baseline/Makefile b/preproc/ENVI_preproc/ENVI_baseline/Makefile
+deleted file mode 100644
+index 1369443..0000000
+--- a/preproc/ENVI_preproc/ENVI_baseline/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ENVI_baseline
+-CSRCS = ENVI_baseline.c \
+-	ENVI_llt2rat_sub.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../../ALOS_preproc/include
+-CLIBS = -L../../ALOS_preproc/lib -lALOS -L../lib -lENVI -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ENVI_preproc/ENVI_decode/Makefile b/preproc/ENVI_preproc/ENVI_decode/Makefile
+deleted file mode 100644
+index e329f2d..0000000
+--- a/preproc/ENVI_preproc/ENVI_decode/Makefile
++++ /dev/null
+@@ -1,19 +0,0 @@
+-include ../../../config.mk
+-PROG =  asa_im_decode
+-CSRCS = asa_im_decode.c 
+-OBJS =  $(CSRCS:.c=.o)
+-CLIBS = -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ENVI_preproc/ENVI_llt2rat/Makefile b/preproc/ENVI_preproc/ENVI_llt2rat/Makefile
+deleted file mode 100644
+index 3f4add3..0000000
+--- a/preproc/ENVI_preproc/ENVI_llt2rat/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ENVI_llt2rat
+-CSRCS = ENVI_llt2rat.c 
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../../ALOS_preproc/include
+-
+-CLIBS = -L../../ALOS_preproc/lib -lALOS -L../lib -lENVI -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ENVI_preproc/ENVI_look/Makefile b/preproc/ENVI_preproc/ENVI_look/Makefile
+deleted file mode 100644
+index b8ffdd3..0000000
+--- a/preproc/ENVI_preproc/ENVI_look/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ENVI_look
+-CSRCS = ENVI_look.c 
+-
+-OBJS =  $(CSRCS:.c=.o)	$(FSRCS:.f=.o)
+-INCLUDES = -I../../ALOS_preproc/include 
+-
+-CLIBS =	-L../../ALOS_preproc/lib -lALOS -L../lib -lENVI -lm 
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(CLIBS)
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/ENVI_preproc/Makefile b/preproc/ENVI_preproc/Makefile
+deleted file mode 100644
+index 2d14761..0000000
+--- a/preproc/ENVI_preproc/Makefile
++++ /dev/null
+@@ -1,43 +0,0 @@
+-include ../../config.mk
+-
+-LIB	= lib/ibENVI.a
+-DIRS	= ASA_CAT Dop_orbit ENVI_decode ENVI_SLC_decode
+-SCRIPT	= scripts
+-
+-all:	$(LIB)
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	all
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-	$(INSTALL) $(SCRIPT)/dump_orbit_envi.pl $(bindir)
+-	$(INSTALL) $(SCRIPT)/dump_time_envi.pl $(bindir)
+-	$(INSTALL) $(SCRIPT)/find_auxi.pl $(bindir)
+-	$(INSTALL) $(SCRIPT)/ENVI_pre_process $(bindir)
+-	$(INSTALL) $(SCRIPT)/ENVI_SLC_pre_process $(bindir)
+-
+-uninstall:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) uninstall); \
+-	done
+-	rm -f $(bindir)/dump_orbit_envi.pl
+-	rm -f $(bindir)/dump_time_envi.pl
+-	rm -f $(bindir)/find_auxi.pl
+-	rm -f $(bindir)/ENVI_pre_process
+-	rm -f $(bindir)/ENVI_SLC_pre_process
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-	(cd lib_src; $(MAKE) clean)
+-
+-$(LIB):
+-	mkdir -p lib
+-	(cd lib_src; $(MAKE) all)
+-
+-spotless:	clean
+-	rm -rf lib
+diff --git a/preproc/ENVI_preproc/lib_src/Makefile b/preproc/ENVI_preproc/lib_src/Makefile
+deleted file mode 100644
+index 6471395..0000000
+--- a/preproc/ENVI_preproc/lib_src/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-# Makefile for lib src 
+-LIB = libENVI.a
+-INCLUDES = -I../../ALOS_preproc/include
+-
+-SRCS =	read_ENVI_orb.c \
+-	ENVI_ldr_orbit.c
+-
+-OBJS= $(SRCS:.c=.o)
+-
+-$(LIB) : $(OBJS)
+-	$(AR) r $(LIB) $?
+-	$(RANLIB) $(LIB)
+-
+-all:	install
+-
+-install:	$(LIB)
+-	$(INSTALL) *.a ../lib
+-
+-clean:
+-	rm -f *.a *.o 
+diff --git a/preproc/ERS_preproc/Makefile b/preproc/ERS_preproc/Makefile
+deleted file mode 100644
+index 689dedc..0000000
+--- a/preproc/ERS_preproc/Makefile
++++ /dev/null
+@@ -1,30 +0,0 @@
+-include ../../config.mk
+-
+-DIRS	= ers_line_fixer read_data_file_dpaf read_data_file_ccrs read_sarleader_dpaf
+-SCRIPT	= scripts
+-
+-all:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	all
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-	$(INSTALL) $(SCRIPT)/dump_orbit_ers.pl $(bindir)
+-	$(INSTALL) $(SCRIPT)/ERS_pre_process $(bindir)
+-
+-uninstall:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) uninstall); \
+-	done
+-	rm -f $(bindir)/dump_orbit_ers.pl
+-	rm -f $(bindir)/ERS_pre_process
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-
+-spotless:	clean
+diff --git a/preproc/ERS_preproc/ers_line_fixer/Makefile b/preproc/ERS_preproc/ers_line_fixer/Makefile
+deleted file mode 100644
+index 44e0132..0000000
+--- a/preproc/ERS_preproc/ers_line_fixer/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  ers_line_fixer
+-CSRCS = ers_line_fixer.c
+-
+-OBJS =  $(CSRCS:.c=.o)	
+-
+-INCLUDES = -I./include
+-LIBS = -lm 
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(LIBS) 
+-
+-all:	$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core *.c.*
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+diff --git a/preproc/ERS_preproc/read_data_file_ccrs/Makefile b/preproc/ERS_preproc/read_data_file_ccrs/Makefile
+deleted file mode 100644
+index d3c0162..0000000
+--- a/preproc/ERS_preproc/read_data_file_ccrs/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  read_data_file_ccrs
+-CSRCS = read_data_file_ccrs.c
+-
+-OBJS =  $(CSRCS:.c=.o)	
+-
+-INCLUDES = -I../include
+-LIBS = -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(LIBS) 
+-
+-all:	$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core *.c.*
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)/$(PROG)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+diff --git a/preproc/ERS_preproc/read_data_file_dpaf/Makefile b/preproc/ERS_preproc/read_data_file_dpaf/Makefile
+deleted file mode 100644
+index 5e5c3ca..0000000
+--- a/preproc/ERS_preproc/read_data_file_dpaf/Makefile
++++ /dev/null
+@@ -1,22 +0,0 @@
+-include ../../../config.mk
+-PROG =  read_data_file_dpaf
+-CSRCS = read_data_file_dpaf.c
+-
+-OBJS =  $(CSRCS:.c=.o)	
+-
+-INCLUDES = -I../include
+-LIBS = -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(LIBS) 
+-
+-all:	$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core *.c.*
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+diff --git a/preproc/ERS_preproc/read_sarleader_ccrs/Makefile b/preproc/ERS_preproc/read_sarleader_ccrs/Makefile
+deleted file mode 100644
+index 6b5fe6d..0000000
+--- a/preproc/ERS_preproc/read_sarleader_ccrs/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-PROG =  read_sarleader_ccrs
+-CSRCS = read_sarleader_ccrs.c make_prm_ccrs.c
+-
+-OBJS =  $(CSRCS:.c=.o)	
+-
+-LIBS = -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(LIBS)
+-
+-all:	$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+diff --git a/preproc/ERS_preproc/read_sarleader_dpaf/Makefile b/preproc/ERS_preproc/read_sarleader_dpaf/Makefile
+deleted file mode 100644
+index 7014c20..0000000
+--- a/preproc/ERS_preproc/read_sarleader_dpaf/Makefile
++++ /dev/null
+@@ -1,20 +0,0 @@
+-include ../../../config.mk
+-PROG =  read_sarleader_dpaf
+-CSRCS = read_sarleader_dpaf.c make_prm_dpaf.c
+-
+-OBJS =  $(CSRCS:.c=.o)	
+-LIBS = -lm
+-
+-$(PROG): $(OBJS)
+-	$(LINK.c) -o $@ $(OBJS) $(LIBS)
+-
+-all:	$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+diff --git a/preproc/ERS_preproc/utility/makefile_sun b/preproc/ERS_preproc/utility/makefile_sun
+deleted file mode 100644
+index ed45cfd..0000000
+--- a/preproc/ERS_preproc/utility/makefile_sun
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#
+-# Makefile for ccrs2dpaf and dopiq.
+-#
+-cc = gcc
+-flag = -O2
+-SLIB = ../../../../lib/sun4/libsiosar.a
+-
+-ccrs2dpaf:	ccrs2dpaf.c 
+-	cc ccrs2dpaf.c -o ../../../../bin/sun4/ccrs2dpaf
+-
+-clean:
+-	rm -f *.o
+-
+diff --git a/preproc/RS2_preproc/Makefile b/preproc/RS2_preproc/Makefile
+deleted file mode 100644
+index 2294c43..0000000
+--- a/preproc/RS2_preproc/Makefile
++++ /dev/null
+@@ -1,27 +0,0 @@
+-include ../../config.mk
+-#
+-#   make all the files
+-#
+-DIRS	= lib src
+-
+-all:
+-	$(LN_S) -f ../S1A_preproc/include include
+-	$(LN_S) -f ../S1A_preproc/lib lib
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	all
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-
+-uninstall:
+-	(cd src; $(MAKE) uninstall)
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-
+-spotless:	clean
+diff --git a/preproc/RS2_preproc/src/Makefile b/preproc/RS2_preproc/src/Makefile
+deleted file mode 100644
+index 6e12819..0000000
+--- a/preproc/RS2_preproc/src/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-PROG =  make_slc_rs2
+-CSRCS = make_slc_rs2.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar -I$(TIFF_INC)
+-CLIBS = -L../../../gmtsar -lgmtsar -L../lib -lxmlC -L$(TIFF_LIB) -ltiff -lm
+-
+-$(PROG): $(OBJS)
+-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(CLIBS) 
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/S1A_preproc/Makefile b/preproc/S1A_preproc/Makefile
+deleted file mode 100644
+index c2d5905..0000000
+--- a/preproc/S1A_preproc/Makefile
++++ /dev/null
+@@ -1,27 +0,0 @@
+-include ../../config.mk
+-#
+-#   make all the files
+-#
+-DIRS	= lib src_swath src_tops src_orbit src_stitch src_spec_div src_assembly
+-
+-all:
+-	$(LN_S) -f ../S1A_preproc/include include
+-	$(LN_S) -f ../S1A_preproc/lib lib
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	all
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-
+-uninstall:
+-	(cd src; $(MAKE) uninstall)
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-
+-spotless:	clean
+diff --git a/preproc/S1A_preproc/lib/Makefile b/preproc/S1A_preproc/lib/Makefile
+deleted file mode 100644
+index eceea15..0000000
+--- a/preproc/S1A_preproc/lib/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-# Makefile for lib
+-LIB = libxmlC.a
+-INCLUDES = -I../include 
+-
+-SRCS =	xml.c 
+-
+-OBJS= $(SRCS:.c=.o)
+-
+-all:	$(LIB)
+-
+-install:	all
+-
+-$(LIB) : $(OBJS)
+-	$(AR) rv $(LIB) $?
+-	$(RANLIB)  $(LIB)
+-
+-clean:
+-	rm -f *.o $(LIB)
+-
+-spotless:	clean
+diff --git a/preproc/S1A_preproc/src_assembly/Makefile b/preproc/S1A_preproc/src_assembly/Makefile
+deleted file mode 100644
+index a863c38..0000000
+--- a/preproc/S1A_preproc/src_assembly/Makefile
++++ /dev/null
+@@ -1,15 +0,0 @@
+-include ../../../config.mk
+-
+-INCLUDES = -I../include -I$(GMTSARHOME)/gmtsar -I$(TIFF_INC) $(GMT_INC)
+-CLIBS = -L../lib -lxmlC $(GMTSAR) $(GMT_LIB) $(LALIBS) -L$(TIFF_LIB) -ltiff -lm
+-
+-assemble_tops: assemble_tops.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ assemble_tops.o $(CLIBS) 
+-
+-all:	assemble_tops
+-
+-install:
+-	$(INSTALL) assemble_tops $(bindir)
+-
+-clean:
+-	rm -f *.o assemble_tops tags core
+diff --git a/preproc/S1A_preproc/src_orbit/Makefile b/preproc/S1A_preproc/src_orbit/Makefile
+deleted file mode 100644
+index d067487..0000000
+--- a/preproc/S1A_preproc/src_orbit/Makefile
++++ /dev/null
+@@ -1,18 +0,0 @@
+-include ../../../config.mk
+-PROG =  ext_orb_s1a
+-CSRCS = ext_orb_s1a.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar -I$(TIFF_INC)
+-CLIBS = -L../../../gmtsar -lgmtsar -L../lib -lxmlC -L$(TIFF_LIB) -ltiff -lm
+-
+-$(PROG): $(OBJS)
+-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(CLIBS) 
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/S1A_preproc/src_spec_div/Makefile b/preproc/S1A_preproc/src_spec_div/Makefile
+deleted file mode 100644
+index 523eb73..0000000
+--- a/preproc/S1A_preproc/src_spec_div/Makefile
++++ /dev/null
+@@ -1,15 +0,0 @@
+-include ../../../config.mk
+-
+-INCLUDES = -I../include -I$(GMTSARHOME)/gmtsar $(GMT_INC)
+-CLIBS = -L../lib -lxmlC $(GMTSAR) $(GMT_LIB) $(LALIBS) -lm
+-
+-spectral_diversity: spectral_diversity.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ spectral_diversity.o $(CLIBS) 
+-
+-all:	spectral_diversity
+-
+-install:
+-	$(INSTALL) spectral_diversity $(bindir)
+-
+-clean:
+-	rm -f *.o spectral_diversity tags core
+diff --git a/preproc/S1A_preproc/src_stitch/Makefile b/preproc/S1A_preproc/src_stitch/Makefile
+deleted file mode 100644
+index 6a8692c..0000000
+--- a/preproc/S1A_preproc/src_stitch/Makefile
++++ /dev/null
+@@ -1,19 +0,0 @@
+-include ../../../config.mk
+-
+-INCLUDES = -I$(GMTSARHOME)/gmtsar $(GMT_INC)
+-CLIBS = $(GMTSAR) $(GMT_LIB) $(LALIBS) -lm
+-
+-stitch_tops: stitch_tops.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ stitch_tops.o $(CLIBS) 
+-
+-merge_swath: merge_swath.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ merge_swath.o $(CLIBS)
+-
+-all:	stitch_tops merge_swath
+-
+-install:
+-	$(INSTALL) stitch_tops $(bindir)
+-	$(INSTALL) merge_swath $(bindir)
+-
+-clean:
+-	rm -f *.o stitch_tops merge_swath tags core
+diff --git a/preproc/S1A_preproc/src_swath/Makefile b/preproc/S1A_preproc/src_swath/Makefile
+deleted file mode 100644
+index dffe2d7..0000000
+--- a/preproc/S1A_preproc/src_swath/Makefile
++++ /dev/null
+@@ -1,18 +0,0 @@
+-include ../../../config.mk
+-PROG =  make_slc_s1a
+-CSRCS = make_slc_s1a.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar -I$(TIFF_INC)
+-CLIBS = -L../../../gmtsar -lgmtsar -L../lib -lxmlC -L$(TIFF_LIB) -ltiff -lm
+-
+-$(PROG): $(OBJS)
+-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(CLIBS) 
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/S1A_preproc/src_tops/Makefile b/preproc/S1A_preproc/src_tops/Makefile
+deleted file mode 100644
+index 9f453b0..0000000
+--- a/preproc/S1A_preproc/src_tops/Makefile
++++ /dev/null
+@@ -1,19 +0,0 @@
+-include ../../../config.mk
+-
+-INCLUDES = -I../include -I$(GMTSARHOME)/gmtsar -I$(TIFF_INC) $(GMT_INC)
+-CLIBS = -L../lib -lxmlC $(GMTSAR) $(GMT_LIB) $(LALIBS) -L$(TIFF_LIB) -ltiff -lm
+-
+-make_s1a_tops: make_s1a_tops.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ make_s1a_tops.o $(CLIBS) 
+-
+-make_s1a_tops_6par: make_s1a_tops_6par.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ make_s1a_tops_6par.o $(CLIBS) 
+-
+-all:	make_s1a_tops make_s1a_tops_6par
+-
+-install:
+-	$(INSTALL) make_s1a_tops $(bindir)
+-	$(INSTALL) make_s1a_tops_6par $(bindir)
+-
+-clean:
+-	rm -f *.o make_s1a_tops make_s1a_tops_6par tags core
+diff --git a/preproc/S1A_preproc/src_tops/Makefile_orig b/preproc/S1A_preproc/src_tops/Makefile_orig
+deleted file mode 100644
+index a964ee0..0000000
+--- a/preproc/S1A_preproc/src_tops/Makefile_orig
++++ /dev/null
+@@ -1,18 +0,0 @@
+-include ../../../config.mk
+-PROG =  make_s1a_tops
+-CSRCS = make_s1a_tops.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I$(GMTSARHOME)/gmtsar/include -I$(TIFF_INC) $(GMT_INC)
+-CLIBS = -L../lib -lxmlC $(GMTSAR) $(GMT_LIB) $(LALIBS) -L$(TIFF_LIB) -ltiff -lm
+-
+-$(PROG): $(OBJS)
+-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(CLIBS) 
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-clean:
+-	rm -f $(OBJS) tags core
+diff --git a/preproc/TSX_preproc/Makefile b/preproc/TSX_preproc/Makefile
+deleted file mode 100644
+index 2294c43..0000000
+--- a/preproc/TSX_preproc/Makefile
++++ /dev/null
+@@ -1,27 +0,0 @@
+-include ../../config.mk
+-#
+-#   make all the files
+-#
+-DIRS	= lib src
+-
+-all:
+-	$(LN_S) -f ../S1A_preproc/include include
+-	$(LN_S) -f ../S1A_preproc/lib lib
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) all); \
+-	done
+-
+-install:	all
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) install); \
+-	done
+-
+-uninstall:
+-	(cd src; $(MAKE) uninstall)
+-
+-clean:
+-	for d in $(DIRS); do \
+-		(cd $$d; $(MAKE) clean); \
+-	done
+-
+-spotless:	clean
+diff --git a/preproc/TSX_preproc/src/Makefile b/preproc/TSX_preproc/src/Makefile
+deleted file mode 100644
+index d975bb9..0000000
+--- a/preproc/TSX_preproc/src/Makefile
++++ /dev/null
+@@ -1,21 +0,0 @@
+-include ../../../config.mk
+-PROG =  make_slc_tsx
+-CSRCS = make_slc_tsx.c
+-
+-OBJS =  $(CSRCS:.c=.o)
+-INCLUDES = -I../include -I../../../gmtsar -I$(TIFF_INC)
+-CLIBS = -L../../../gmtsar -lgmtsar -L../lib -lxmlC -L$(TIFF_LIB) -ltiff -lm
+-
+-$(PROG): $(OBJS)
+-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(CLIBS) 
+-
+-all:	$(PROG)
+-
+-install:
+-	$(INSTALL) $(PROG) $(bindir)
+-
+-uninstall:
+-	rm -f $(bindir)/$(PROG)
+-
+-clean:
+-	rm -f $(OBJS) tags core

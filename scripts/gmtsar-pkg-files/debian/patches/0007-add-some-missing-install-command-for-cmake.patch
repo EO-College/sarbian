@@ -1,0 +1,39 @@
+diff --git a/gmtsar/CMakeLists.txt b/gmtsar/CMakeLists.txt
+index d67f638..f5632f0 100644
+--- a/gmtsar/CMakeLists.txt
++++ b/gmtsar/CMakeLists.txt
+@@ -83,4 +83,8 @@ install (TARGETS gmtsar bperp calc_dop_orb conv esarp extend_orbit make_gaussian
+ 
+ add_subdirectory (csh)
+ 
++install (DIRECTORY filters
++    DESTINATION share/gmtsar
++    COMPONENT Runtime)
++
+ # vim: textwidth=78 noexpandtab tabstop=2 softtabstop=2 shiftwidth=2
+diff --git a/gmtsar/csh/CMakeLists.txt b/gmtsar/csh/CMakeLists.txt
+index 276ed98..536d791 100644
+--- a/gmtsar/csh/CMakeLists.txt
++++ b/gmtsar/csh/CMakeLists.txt
+@@ -1,4 +1,11 @@
+ configure_file (gmtsar_sharedir.csh.in gmtsar_sharedir.csh)
++install (PROGRAMS "${PROJECT_BINARY_DIR}/gmtsar/csh/gmtsar_sharedir.csh"
++    DESTINATION bin
++    COMPONENT Runtime)
++
++install (FILES snaphu.conf.brief
++    DESTINATION share/gmtsar/snaphu/config
++    COMPONENT Runtime)
+ 
+ install (PROGRAMS align.csh align_ALOS2_SCAN.csh align_ALOS_SLC.csh align_batch.csh align_batch_ALOS2_SCAN.csh
+     align_batch_ALOS_SLC.csh align_tops.csh align_tops_6par.csh align_tops_esd.csh baseline_table.csh
+diff --git a/gmtsar/csh/gmtsar_sharedir.csh.in b/gmtsar/csh/gmtsar_sharedir.csh.in
+index 0025d25..1642f67 100644
+--- a/gmtsar/csh/gmtsar_sharedir.csh.in
++++ b/gmtsar/csh/gmtsar_sharedir.csh.in
+@@ -1,4 +1,4 @@
+ #!/bin/csh -f
+ #	$Id: gmtsar_sharedir.csh.in 42 2013-04-08 20:43:57Z pwessel $
+ # Just report the GMTSAR share directory
+-echo "@prefix@/share/gmtsar"
++echo "@CMAKE_INSTALL_PREFIX@/share/gmtsar"

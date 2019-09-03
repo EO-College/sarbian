@@ -1,0 +1,15 @@
+gmtsar for Debian
+---------------------
+
+  * Initial release
+  * Applied a series of patches required for a succesful build
+    - Removed obsolete ALOS_filter from CMakeLists.txt
+    - Used dedicated CMakeLists.txt for csh scripts
+    - Added some missing install commands for CMake build
+  * Applied a series of patches to cleanup the source tree
+    - Dropped SNAPHU code (snaphu is provided by Debian package snaphu)
+    - Dropped non-CMake build files
+    - Removed leftover files and broken symlinks
+    - Removed executable permission from source files
+
+ -- SARbian Team <sarbian@uni-jena.de>  Mon, 26 Aug 2019 13:03:17 +0200

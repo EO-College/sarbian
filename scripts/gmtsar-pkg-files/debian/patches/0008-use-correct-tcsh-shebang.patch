@@ -1,0 +1,8 @@
+--- a/gmtsar/csh/make_a_offset.csh
++++ b/gmtsar/csh/make_a_offset.csh
+@@ -1,4 +1,4 @@
+-#!/bin/tcsh -f
++#!/usr/bin/tcsh -f
+ #       $Id$
+ # Script to drive the xcorr to do the azimuthal pixel-tracking
+ # Originated by Matt Wei, April 19, 2010

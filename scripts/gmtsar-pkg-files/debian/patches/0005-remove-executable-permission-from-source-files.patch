@@ -1,0 +1,15 @@
+diff --git a/gmtsar/update_PRM_sub.c b/gmtsar/update_PRM_sub.c
+old mode 100755
+new mode 100644
+diff --git a/preproc/ALOS_preproc/lib_src/write_ALOS_LED.c b/preproc/ALOS_preproc/lib_src/write_ALOS_LED.c
+old mode 100755
+new mode 100644
+diff --git a/preproc/ALOS_preproc/lib_src/write_orb.c b/preproc/ALOS_preproc/lib_src/write_orb.c
+old mode 100755
+new mode 100644
+diff --git a/preproc/ENVI_preproc/ENVI_SLC_decode/envisat_dump_data.c b/preproc/ENVI_preproc/ENVI_SLC_decode/envisat_dump_data.c
+old mode 100755
+new mode 100644
+diff --git a/preproc/ENVI_preproc/ENVI_SLC_decode/envisat_dump_header.c b/preproc/ENVI_preproc/ENVI_SLC_decode/envisat_dump_header.c
+old mode 100755
+new mode 100644

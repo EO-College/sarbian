@@ -1,0 +1,8 @@
+0001-remove-obsolete-alos-filter-from-cmakelist.patch
+0002-drop-snaphu-from-source.patch
+0003-drop-non-cmake-build-files.patch
+0004-remove-leftover-files-and-broken-symlinks.patch
+0005-remove-executable-permission-from-source-files.patch
+0006-use-dedicated-cmakelists-for-csh-scripts.patch
+0007-add-some-missing-install-command-for-cmake.patch
+0008-use-correct-tcsh-shebang.patch
