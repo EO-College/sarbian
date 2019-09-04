@@ -35,7 +35,7 @@ The following software is installed for the processing and handling of SAR data.
 |:-----------|:-----------|:-----------------|
 |[DORIS](http://doris.tudelft.nl/usermanual/index.html)| Debian repository|GPL-3.0|
 |[SNAPHU](https://web.stanford.edu/group/radar/softwareandlinks/sw/snaphu/)| Debian repository| [common](http://metadata.ftp-master.debian.org/changelogs/non-free/s/snaphu/snaphu_1.4.2-2_copyright)|
-|[PyRAT](https://github.com/birgander2/PyRAT)| via pip from github|MPL-2.0|
+|[GMTSAR](https://github.com/gmtsar/gmtsar)| own package build| GPL-3.0|
 
 ### GIS
 |Software name|Installation source |License|
