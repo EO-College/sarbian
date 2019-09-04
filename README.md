@@ -1,5 +1,5 @@
 # SARbian
-SARbian is a Linux live system based on Debian Stretch (Debian 9) coming with free SAR processing software tools pre-installed, ready to use.
+SARbian is a Linux live system based on Debian Buster (Debian 10) coming with free SAR processing software tools pre-installed, ready to use.
 For now, there is only a version for 64 bit systems.
 
 This repository contains the scripts to build the SARbian iso file.
@@ -50,7 +50,6 @@ The following software is installed for the processing and handling of SAR data.
 |[Python 2 and 3](python.org), incl. pip| Debian repository|Python-2.0|
 |[matplotlib](https://pypi.org/project/matplotlib/)| via pip from PyPI|Python-2.0| 
 |[numpy](https://pypi.org/project/numpy/)| via pip from PyPI|BSD-3-Clause|
-|[PyRAT](https://github.com/birgander2/PyRAT)| via pip from Github|MPL-2.0|
 |[pyroSAR](https://github.com/johntruckenbrodt/pyroSAR)| via pip from PyPI|MIT|
 |[scipy](https://pypi.org/project/scipy/)| via pip from PyPI|BSD-3-Clause|
 |[spatialist](https://github.com/johntruckenbrodt/spatialist) | via pip from PyPI|MIT|
