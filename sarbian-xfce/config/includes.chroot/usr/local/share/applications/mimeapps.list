@@ -1,4 +1,7 @@
 [Default Applications]
-application/pdf=evince.desktop
+application/pdf=org.gnome.Evince.desktop
 image/jpeg=ristretto.desktop
+image/png=ristretto.desktop
 text/markdown=mousepad.desktop
+text/plain=mousepad.desktop
+text/txt=mousepad.desktop
