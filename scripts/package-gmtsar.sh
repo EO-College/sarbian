@@ -46,7 +46,7 @@ declare -ar makedepends=(
     "debhelper"
     "lintian"
     "cmake"
-    "csh"
+    "tcsh"
     "autoconf"
     "libtiff5-dev"
     "libhdf5-dev"

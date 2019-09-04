@@ -47,6 +47,7 @@ declare -r makedepends=(\
     "build-essential" \
     "devscripts" \
     "debhelper" \
+    "gawk" \
     "lintian" \
     "libgsl-dev" \
     "libproj-dev" \
